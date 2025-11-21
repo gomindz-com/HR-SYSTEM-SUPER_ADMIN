@@ -1,65 +1,369 @@
-import Image from "next/image";
+"use client"
 
-export default function Home() {
+import { useEffect, useState } from "react"
+import {
+  Building2,
+  Users,
+  Clock,
+  XCircle,
+  Infinity,
+  DollarSign,
+  TrendingUp,
+  TrendingDown,
+  FileText,
+  CreditCard,
+} from "lucide-react"
+import { MetricCard } from "@/components/metric_card"
+import { getDashboardMetrics } from "@/lib/api"
+import type { DashboardMetrics } from "@/lib/types"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton"
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
+import Link from "next/link"
+import {
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Line,
+  LineChart,
+  XAxis,
+  YAxis,
+  ResponsiveContainer,
+} from "recharts"
+
+const subscriptionTrendData = [
+  { month: "Jan", active: 45, trial: 12, expired: 5 },
+  { month: "Feb", active: 52, trial: 15, expired: 3 },
+  { month: "Mar", active: 61, trial: 18, expired: 4 },
+  { month: "Apr", active: 68, trial: 14, expired: 6 },
+  { month: "May", active: 75, trial: 20, expired: 5 },
+  { month: "Jun", active: 82, trial: 16, expired: 7 },
+]
+
+const revenueData = [
+  { month: "Jan", revenue: 45000 },
+  { month: "Feb", revenue: 52000 },
+  { month: "Mar", revenue: 61000 },
+  { month: "Apr", revenue: 68000 },
+  { month: "May", revenue: 75000 },
+  { month: "Jun", revenue: 82000 },
+]
+
+const companyGrowthData = [
+  { month: "Jan", companies: 57 },
+  { month: "Feb", companies: 67 },
+  { month: "Mar", companies: 79 },
+  { month: "Apr", companies: 82 },
+  { month: "May", companies: 95 },
+  { month: "Jun", companies: 98 },
+]
+
+export default function AdminDashboard() {
+  const [metrics, setMetrics] = useState<DashboardMetrics | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function fetchMetrics() {
+      const response = await getDashboardMetrics()
+      if (response.success && response.data) {
+        setMetrics(response.data)
+      }
+      setLoading(false)
+    }
+    fetchMetrics()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight">Dashboard Overview</h2>
+          <p className="text-muted-foreground">Monitor your HR system performance and metrics</p>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {[...Array(6)].map((_, i) => (
+            <Card key={i}>
+              <CardHeader>
+                <Skeleton className="h-4 w-24" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-8 w-16" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-3xl font-bold tracking-tight">Dashboard Overview</h2>
+        <p className="text-muted-foreground">Monitor your HR system performance and metrics</p>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <MetricCard title="Total Companies" value={metrics?.totalCompanies || 0} icon={Building2} color="blue" />
+        <MetricCard title="Active" value={metrics?.activeSubscriptions || 0} icon={Users} color="emerald" />
+        <MetricCard title="Trial" value={metrics?.trialCompanies || 0} icon={Clock} color="amber" />
+        <MetricCard title="Expired" value={metrics?.expiredSubscriptions || 0} icon={XCircle} color="rose" />
+        <MetricCard title="Lifetime" value={metrics?.lifetimeAccessCompanies || 0} icon={Infinity} color="violet" />
+        <MetricCard
+          title="Total Revenue"
+          value={`$${(metrics?.totalRevenue || 0).toLocaleString()}`}
+          icon={DollarSign}
+          color="teal"
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+      </div>
+
+      {/* <Card className="shadow-sm">
+        <CardHeader>
+          <CardTitle className="text-xl font-bold">Quick Actions</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <Link href="/admin/companies">
+              <Card className="border-l-4 border-l-primary hover:shadow-md transition-all cursor-pointer h-full">
+                <CardContent className="pt-6">
+                  <div className="flex items-start gap-4">
+                    <div className="p-2">
+                      <Building2 className="h-6 w-6 text-primary" />
+                    </div>
+                    <div className="space-y-1">
+                      <h3 className="font-semibold text-foreground">Manage Companies</h3>
+                      <p className="text-sm text-muted-foreground">View and edit company details</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+
+            <Link href="/admin/subscriptions">
+              <Card className="border-l-4 border-l-accent hover:shadow-md transition-all cursor-pointer h-full">
+                <CardContent className="pt-6">
+                  <div className="flex items-start gap-4">
+                    <div className="p-2">
+                      <FileText className="h-6 w-6 text-accent" />
+                    </div>
+                    <div className="space-y-1">
+                      <h3 className="font-semibold text-foreground">Subscriptions</h3>
+                      <p className="text-sm text-muted-foreground">Manage subscription plans</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+
+            <Link href="/admin/payments">
+              <Card className="border-l-4 border-l-chart-5 hover:shadow-md transition-all cursor-pointer h-full">
+                <CardContent className="pt-6">
+                  <div className="flex items-start gap-4">
+                    <div className="p-2">
+                      <CreditCard className="h-6 w-6 text-chart-5" />
+                    </div>
+                    <div className="space-y-1">
+                      <h3 className="font-semibold text-foreground">Payments</h3>
+                      <p className="text-sm text-muted-foreground">View payment history</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          </div>
+        </CardContent>
+      </Card> */}
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Card className="shadow-sm">
+          <CardHeader>
+            <CardTitle>Revenue Trend</CardTitle>
+            <CardDescription>Monthly revenue over the last 6 months</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer
+              config={{
+                revenue: {
+                  label: "Revenue",
+                  color: "hsl(var(--chart-1))",
+                },
+              }}
+              className="h-[300px]"
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={revenueData}>
+                  <defs>
+                    <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                  <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Area
+                    type="monotone"
+                    dataKey="revenue"
+                    stroke="hsl(var(--chart-1))"
+                    fillOpacity={1}
+                    fill="url(#colorRevenue)"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-sm">
+          <CardHeader>
+            <CardTitle>Company Growth</CardTitle>
+            <CardDescription>Total companies over time</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer
+              config={{
+                companies: {
+                  label: "Companies",
+                  color: "hsl(var(--chart-2))",
+                },
+              }}
+              className="h-[300px]"
             >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={companyGrowthData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                  <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Line
+                    type="monotone"
+                    dataKey="companies"
+                    stroke="hsl(var(--chart-2))"
+                    strokeWidth={2}
+                    dot={{ fill: "hsl(var(--chart-2))" }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card className="shadow-sm">
+        <CardHeader>
+          <CardTitle>Subscription Status Distribution</CardTitle>
+          <CardDescription>Active, trial, and expired subscriptions over time</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ChartContainer
+            config={{
+              active: {
+                label: "Active",
+                color: "hsl(var(--chart-2))",
+              },
+              trial: {
+                label: "Trial",
+                color: "hsl(var(--chart-3))",
+              },
+              expired: {
+                label: "Expired",
+                color: "hsl(var(--chart-4))",
+              },
+            }}
+            className="h-[300px]"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={subscriptionTrendData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <Bar dataKey="active" fill="hsl(var(--chart-2))" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="trial" fill="hsl(var(--chart-3))" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="expired" fill="hsl(var(--chart-4))" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </ChartContainer>
+        </CardContent>
+      </Card>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Card className="shadow-sm">
+          <CardHeader>
+            <CardTitle>Quick Stats</CardTitle>
+            <CardDescription>Key performance indicators</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Active Rate</span>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">
+                  {metrics?.totalCompanies
+                    ? Math.round((metrics.activeSubscriptions / metrics.totalCompanies) * 100)
+                    : 0}
+                  %
+                </span>
+                <TrendingUp className="h-4 w-4 text-chart-2" />
+              </div>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Trial Conversion</span>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">
+                  {metrics?.trialCompanies
+                    ? Math.round(
+                        (metrics.activeSubscriptions / (metrics.trialCompanies + metrics.activeSubscriptions)) * 100,
+                      )
+                    : 0}
+                  %
+                </span>
+                <TrendingUp className="h-4 w-4 text-chart-2" />
+              </div>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Churn Rate</span>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">
+                  {metrics?.totalCompanies
+                    ? Math.round((metrics.expiredSubscriptions / metrics.totalCompanies) * 100)
+                    : 0}
+                  %
+                </span>
+                <TrendingDown className="h-4 w-4 text-chart-4" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-sm">
+          <CardHeader>
+            <CardTitle>Revenue Breakdown</CardTitle>
+            <CardDescription>Financial overview</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Monthly Revenue</span>
+              <span className="text-sm font-medium">${(metrics?.monthlyRevenue || 0).toLocaleString()}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Average per Company</span>
+              <span className="text-sm font-medium">
+                $
+                {metrics?.activeSubscriptions
+                  ? Math.round((metrics.monthlyRevenue || 0) / metrics.activeSubscriptions)
+                  : 0}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Total Revenue</span>
+              <span className="text-sm font-medium">${(metrics?.totalRevenue || 0).toLocaleString()}</span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
-  );
+  )
 }
