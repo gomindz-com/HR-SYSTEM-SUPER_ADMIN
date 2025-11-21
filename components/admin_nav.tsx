@@ -1,24 +1,24 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { usePathname, useRouter } from "next/navigation"
-import { 
-  Building2, 
-  LayoutDashboard, 
-  CreditCard, 
-  Wallet, 
-  Menu, 
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import {
+  Building2,
+  LayoutDashboard,
+  CreditCard,
+  Wallet,
+  Menu,
   LogOut,
   Settings,
   BarChart3,
-  Users
-} from "lucide-react"
-import { cn } from "@/lib/utils"
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { useAuthStore } from "@/store/auth.store"
-import Image from "next/image"
+  Users,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { useAuthStore } from "@/store/auth.store";
+import Image from "next/image";
 
 const managementNavigation = [
   {
@@ -31,7 +31,7 @@ const managementNavigation = [
     href: "/companies",
     icon: Building2,
   },
-]
+];
 
 const financialNavigation = [
   {
@@ -44,7 +44,7 @@ const financialNavigation = [
     href: "/payments",
     icon: Wallet,
   },
-]
+];
 
 const systemNavigation = [
   {
@@ -57,33 +57,33 @@ const systemNavigation = [
     href: "/settings",
     icon: Settings,
   },
-]
+];
 
 // Helper functions shared between components
 const isActive = (pathname: string, path: string) => {
-  if (path === "/") return pathname === "/"
-  return pathname === path || pathname.startsWith(`${path}/`)
-}
+  if (path === "/") return pathname === "/";
+  return pathname === path || pathname.startsWith(`${path}/`);
+};
 
 const getNavClasses = (pathname: string, path: string) => {
   const baseClasses =
-    "w-full flex items-center gap-2 rounded-md p-2 text-sm transition-all duration-200 hover:bg-sidebar-accent/80"
+    "w-full flex items-center gap-2 rounded-md p-2 text-sm transition-all duration-200 hover:bg-sidebar-accent/80";
   return isActive(pathname, path)
     ? `${baseClasses} bg-sidebar-accent text-sidebar-primary font-medium`
-    : `${baseClasses} text-sidebar-foreground hover:text-sidebar-primary`
-}
+    : `${baseClasses} text-sidebar-foreground hover:text-sidebar-primary`;
+};
 
 export function AdminSidebar() {
-  const pathname = usePathname()
-  const router = useRouter()
-  const { logout, user } = useAuthStore()
+  const pathname = usePathname();
+  const router = useRouter();
+  const { logout, user } = useAuthStore();
 
   const handleLogout = async () => {
-    const success = await logout()
+    const success = await logout();
     if (success) {
-      router.push("/login")
+      router.push("/login");
     }
-  }
+  };
 
   return (
     <aside className="hidden lg:flex lg:flex-col lg:w-64 lg:border-r lg:border-sidebar-border bg-sidebar fixed inset-y-0 left-0 z-10 h-screen">
@@ -99,8 +99,12 @@ export function AdminSidebar() {
             />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-sidebar-foreground">HR System</h1>
-            <p className="text-xs font-medium text-sidebar-primary">Super Admin</p>
+            <h1 className="text-base font-semibold font-inter text-sidebar-foreground">
+              HR System
+            </h1>
+            <p className="text-xs font-medium text-sidebar-primary">
+              Super Admin
+            </p>
           </div>
         </div>
       </div>
@@ -112,7 +116,7 @@ export function AdminSidebar() {
           </div>
           <div className="space-y-1">
             {managementNavigation.map((item) => {
-              const Icon = item.icon
+              const Icon = item.icon;
               return (
                 <Link
                   key={item.href}
@@ -122,7 +126,7 @@ export function AdminSidebar() {
                   <Icon className="w-5 h-5 shrink-0" />
                   <span className="ml-3">{item.title}</span>
                 </Link>
-              )
+              );
             })}
           </div>
         </div>
@@ -134,7 +138,7 @@ export function AdminSidebar() {
           </div>
           <div className="space-y-1">
             {financialNavigation.map((item) => {
-              const Icon = item.icon
+              const Icon = item.icon;
               return (
                 <Link
                   key={item.href}
@@ -144,7 +148,7 @@ export function AdminSidebar() {
                   <Icon className="w-5 h-5 shrink-0" />
                   <span className="ml-3">{item.title}</span>
                 </Link>
-              )
+              );
             })}
           </div>
         </div>
@@ -156,7 +160,7 @@ export function AdminSidebar() {
           </div>
           <div className="space-y-1">
             {systemNavigation.map((item) => {
-              const Icon = item.icon
+              const Icon = item.icon;
               return (
                 <Link
                   key={item.href}
@@ -166,15 +170,19 @@ export function AdminSidebar() {
                   <Icon className="w-5 h-5 shrink-0" />
                   <span className="ml-3">{item.title}</span>
                 </Link>
-              )
+              );
             })}
           </div>
         </div>
       </nav>
       <div className="p-2 border-t border-sidebar-border">
         <div className="mb-3 px-3 py-2 text-sm">
-          <p className="font-medium text-sidebar-foreground">{user?.name || "Super Admin"}</p>
-          <p className="text-xs text-sidebar-foreground/70 truncate">{user?.email || ""}</p>
+          <p className="font-medium text-sidebar-foreground">
+            {user?.name || "Super Admin"}
+          </p>
+          <p className="text-xs text-sidebar-foreground/70 truncate">
+            {user?.email || ""}
+          </p>
         </div>
         <Button
           variant="ghost"
@@ -186,22 +194,22 @@ export function AdminSidebar() {
         </Button>
       </div>
     </aside>
-  )
+  );
 }
 
 export function AdminMobileNav() {
-  const pathname = usePathname()
-  const router = useRouter()
-  const { logout, user } = useAuthStore()
-  const [open, setOpen] = useState(false)
+  const pathname = usePathname();
+  const router = useRouter();
+  const { logout, user } = useAuthStore();
+  const [open, setOpen] = useState(false);
 
   const handleLogout = async () => {
-    const success = await logout()
+    const success = await logout();
     if (success) {
-      router.push("/login")
-      setOpen(false)
+      router.push("/login");
+      setOpen(false);
     }
-  }
+  };
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -218,8 +226,12 @@ export function AdminMobileNav() {
               <Building2 className="h-6 w-6 text-sidebar-primary" />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-sidebar-foreground">HR System</h1>
-              <p className="text-xs font-medium text-sidebar-primary">Super Admin</p>
+              <h1 className="text-lg font-bold text-sidebar-foreground">
+                HR System
+              </h1>
+              <p className="text-xs font-medium text-sidebar-primary">
+                Super Admin
+              </p>
             </div>
           </div>
         </div>
@@ -231,7 +243,7 @@ export function AdminMobileNav() {
             </div>
             <div className="space-y-1">
               {managementNavigation.map((item) => {
-                const Icon = item.icon
+                const Icon = item.icon;
                 return (
                   <Link
                     key={item.href}
@@ -242,7 +254,7 @@ export function AdminMobileNav() {
                     <Icon className="w-5 h-5 shrink-0" />
                     <span className="ml-3">{item.title}</span>
                   </Link>
-                )
+                );
               })}
             </div>
           </div>
@@ -254,7 +266,7 @@ export function AdminMobileNav() {
             </div>
             <div className="space-y-1">
               {financialNavigation.map((item) => {
-                const Icon = item.icon
+                const Icon = item.icon;
                 return (
                   <Link
                     key={item.href}
@@ -265,7 +277,7 @@ export function AdminMobileNav() {
                     <Icon className="w-5 h-5 shrink-0" />
                     <span className="ml-3">{item.title}</span>
                   </Link>
-                )
+                );
               })}
             </div>
           </div>
@@ -277,7 +289,7 @@ export function AdminMobileNav() {
             </div>
             <div className="space-y-1">
               {systemNavigation.map((item) => {
-                const Icon = item.icon
+                const Icon = item.icon;
                 return (
                   <Link
                     key={item.href}
@@ -288,15 +300,19 @@ export function AdminMobileNav() {
                     <Icon className="w-5 h-5 shrink-0" />
                     <span className="ml-3">{item.title}</span>
                   </Link>
-                )
+                );
               })}
             </div>
           </div>
         </nav>
         <div className="p-2 border-t border-sidebar-border">
           <div className="mb-3 px-3 py-2 text-sm">
-            <p className="font-medium text-sidebar-foreground">{user?.name || "Super Admin"}</p>
-            <p className="text-xs text-sidebar-foreground/70 truncate">{user?.email || ""}</p>
+            <p className="font-medium text-sidebar-foreground">
+              {user?.name || "Super Admin"}
+            </p>
+            <p className="text-xs text-sidebar-foreground/70 truncate">
+              {user?.email || ""}
+            </p>
           </div>
           <Button
             variant="ghost"
@@ -309,5 +325,5 @@ export function AdminMobileNav() {
         </div>
       </SheetContent>
     </Sheet>
-  )
+  );
 }
