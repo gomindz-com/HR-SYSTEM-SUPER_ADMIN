@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { axiosInstance } from "@/lib/axios";
+import { axiosInstance, setLastLoginTime } from "@/lib/axios";
 import toast from "react-hot-toast";
 
 // User type based on backend response
@@ -22,6 +22,7 @@ interface AuthStore {
   isAuthenticated: boolean;
   loading: boolean;
   checkingAuth: boolean;
+  justLoggedIn: boolean; // Track if we just logged in to skip unnecessary checks
 
   // Actions
   login: (email: string, password: string) => Promise<void>;
@@ -38,6 +39,7 @@ const initialState = {
   isAuthenticated: false,
   loading: false,
   checkingAuth: false,
+  justLoggedIn: false,
 };
 
 export const useAuthStore = create<AuthStore>((set) => ({
@@ -56,8 +58,10 @@ export const useAuthStore = create<AuthStore>((set) => ({
       if (response.data.success) {
         const { user, token } = response.data.data;
 
-        // Store token in localStorage
+        // Store token in localStorage (use jwt_token to match main frontend)
         if (typeof window !== "undefined") {
+          localStorage.setItem("jwt_token", token);
+          // Also store as token for backward compatibility
           localStorage.setItem("token", token);
         }
 
@@ -66,9 +70,18 @@ export const useAuthStore = create<AuthStore>((set) => ({
           token,
           isAuthenticated: true,
           loading: false,
+          justLoggedIn: true, // Mark that we just logged in
         });
 
+        // Update last login time for axios interceptor grace period
+        setLastLoginTime();
+
         toast.success("Login successful!");
+
+        // Clear justLoggedIn flag after a delay
+        setTimeout(() => {
+          set({ justLoggedIn: false });
+        }, 2000);
       } else {
         throw new Error(response.data.message || "Login failed");
       }
@@ -93,14 +106,16 @@ export const useAuthStore = create<AuthStore>((set) => ({
 
   // Logout action
   logout: () => {
-    // Clear localStorage
+    // Clear localStorage (all possible token keys)
     if (typeof window !== "undefined") {
+      localStorage.removeItem("jwt_token");
       localStorage.removeItem("token");
       localStorage.removeItem("jwt");
     }
 
     set({
       ...initialState,
+      justLoggedIn: false,
     });
 
     toast.success("Logged out successfully");
@@ -108,28 +123,35 @@ export const useAuthStore = create<AuthStore>((set) => ({
 
   // Check authentication status
   checkAuth: async () => {
-    const token =
-      typeof window !== "undefined"
-        ? localStorage.getItem("token") || localStorage.getItem("jwt")
-        : null;
-
-    if (!token) {
-      set({
-        checkingAuth: false,
-        isAuthenticated: false,
-        user: null,
-        token: null,
-      });
-      return;
-    }
-
     set({ checkingAuth: true });
 
     try {
-      const response = await axiosInstance.get("/auth/check");
+      // Check if token exists in localStorage first
+      const token =
+        typeof window !== "undefined"
+          ? localStorage.getItem("jwt_token") ||
+            localStorage.getItem("token") ||
+            localStorage.getItem("jwt")
+          : null;
+
+      if (!token) {
+        console.log("No token found, clearing auth state");
+        set({
+          checkingAuth: false,
+          isAuthenticated: false,
+          user: null,
+          token: null,
+        });
+        return;
+      }
+
+      console.log("Making checkAuth request...");
+      const response = await axiosInstance.get("/auth/check-auth");
 
       if (response.data.success) {
         const { user } = response.data.data;
+
+        console.log("checkAuth success:", response.data);
 
         set({
           user,
@@ -140,9 +162,11 @@ export const useAuthStore = create<AuthStore>((set) => ({
       } else {
         throw new Error("Authentication check failed");
       }
-    } catch {
-      // Clear invalid token
+    } catch (error) {
+      console.log("checkAuth error:", error);
+      // Clear invalid token (all possible keys)
       if (typeof window !== "undefined") {
+        localStorage.removeItem("jwt_token");
         localStorage.removeItem("token");
         localStorage.removeItem("jwt");
       }
@@ -163,8 +187,10 @@ export const useAuthStore = create<AuthStore>((set) => ({
   setToken: (token: string | null) => {
     if (typeof window !== "undefined") {
       if (token) {
-        localStorage.setItem("token", token);
+        localStorage.setItem("jwt_token", token);
+        localStorage.setItem("token", token); // Backward compatibility
       } else {
+        localStorage.removeItem("jwt_token");
         localStorage.removeItem("token");
         localStorage.removeItem("jwt");
       }

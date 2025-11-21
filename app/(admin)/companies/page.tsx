@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/table";
 import { StatusBadge } from "@/components/status_badge";
 import { useSuperAdminStore } from "@/store/superadmin.store";
+import { useAuthStore } from "@/store/auth.store";
 import type { Company } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -29,20 +30,32 @@ export default function CompaniesPage() {
   const router = useRouter();
   const { companies, companiesLoading, companiesPagination, fetchCompanies } =
     useSuperAdminStore();
+  const { isAuthenticated, checkingAuth } = useAuthStore();
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
 
+  // Only fetch companies after auth check is complete and user is authenticated
   useEffect(() => {
-    fetchCompanies({
-      page,
-      pageSize: 10,
-      search: search || undefined,
-      dateFrom: dateFrom || undefined,
-      dateTo: dateTo || undefined,
-    });
-  }, [page, search, dateFrom, dateTo, fetchCompanies]);
+    if (!checkingAuth && isAuthenticated) {
+      fetchCompanies({
+        page,
+        pageSize: 10,
+        search: search || undefined,
+        dateFrom: dateFrom || undefined,
+        dateTo: dateTo || undefined,
+      });
+    }
+  }, [
+    checkingAuth,
+    isAuthenticated,
+    page,
+    search,
+    dateFrom,
+    dateTo,
+    fetchCompanies,
+  ]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();

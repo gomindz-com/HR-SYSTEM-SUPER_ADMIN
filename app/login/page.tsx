@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import Image from "next/image";
 import { useAuthStore } from "@/store/auth.store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -48,6 +49,8 @@ export default function LoginPage() {
   const onSubmit = async (values: LoginFormValues) => {
     try {
       await login(values.email, values.password);
+      // Small delay to ensure token is stored before navigation
+      await new Promise((resolve) => setTimeout(resolve, 100));
       router.push("/dashboard");
     } catch (error) {
       // Error is already handled in the store with toast
@@ -117,11 +120,7 @@ export default function LoginPage() {
                 )}
               />
 
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={loading}
-              >
+              <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? "Signing in..." : "Sign In"}
               </Button>
             </form>
@@ -129,52 +128,21 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Right side - Decorative Background (60%) */}
-      <div className="hidden lg:flex lg:w-[60%] flex-col justify-center items-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 relative overflow-hidden">
-        {/* Decorative pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-0 left-0 w-96 h-96 bg-blue-400 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 right-0 w-96 h-96 bg-purple-400 rounded-full blur-3xl" />
-        </div>
-
-        {/* Content */}
-        <div className="relative z-10 text-center px-12">
-          <div className="mb-8">
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-blue-600 mb-6">
-              <Lock className="h-10 w-10 text-white" />
-            </div>
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Super Admin Portal
-            </h2>
-            <p className="text-lg text-gray-600 max-w-md">
-              Manage your HR system with comprehensive analytics and company management tools
-            </p>
-          </div>
-
-          {/* Feature list */}
-          <div className="grid grid-cols-1 gap-4 mt-12 text-left max-w-md mx-auto">
-            <div className="flex items-start gap-3">
-              <div className="w-2 h-2 rounded-full bg-blue-600 mt-2 flex-shrink-0" />
-              <p className="text-sm text-gray-700">
-                Monitor all companies and their subscriptions
-              </p>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="w-2 h-2 rounded-full bg-blue-600 mt-2 flex-shrink-0" />
-              <p className="text-sm text-gray-700">
-                Track key metrics and statistics in real-time
-              </p>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="w-2 h-2 rounded-full bg-blue-600 mt-2 flex-shrink-0" />
-              <p className="text-sm text-gray-700">
-                Access comprehensive admin controls
-              </p>
-            </div>
-          </div>
+      {/* Right side - Image (60%) */}
+      <div className="hidden lg:flex lg:w-[60%] relative overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+        {/* Image container */}
+        <div className="relative w-full h-full">
+          <Image
+            src="/right.jpg" // Replace with your image path
+            alt="Super Admin Login"
+            fill
+            className="object-cover"
+            priority
+          />
+          {/* Optional overlay for better text contrast if needed */}
+          <div className="absolute inset-0 bg-black/5" />
         </div>
       </div>
     </div>
   );
 }
-
