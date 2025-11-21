@@ -1,276 +1,258 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { useParams, useRouter } from "next/navigation"
-import { ArrowLeft, Building2, Mail, Hash, MapPin, Users, Calendar, Edit } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { StatusBadge } from "@/components/status_badge"
-import { getCompanyById, updateCompany } from "@/lib/api"
-import type { Company } from "@/lib/types"
-import { Skeleton } from "@/components/ui/skeleton"
-import { useToast } from "@/hooks/use-toast"
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Building2, Search, Users, Calendar } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { StatusBadge } from "@/components/status_badge";
+import { useSuperAdminStore } from "@/store/superadmin.store";
+import type { Company } from "@/lib/types";
+import { Skeleton } from "@/components/ui/skeleton";
 
-export default function CompanyDetailsPage() {
-  const params = useParams()
-  const router = useRouter()
-  const { toast } = useToast()
-  const [company, setCompany] = useState<Company | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [editing, setEditing] = useState(false)
-  const [formData, setFormData] = useState<Partial<Company>>({})
+export default function CompaniesPage() {
+  const router = useRouter();
+  const { companies, companiesLoading, companiesPagination, fetchCompanies } =
+    useSuperAdminStore();
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
 
   useEffect(() => {
-    async function fetchCompany() {
-      const response = await getCompanyById(params.id as string)
-      if (response.success && response.data) {
-        setCompany(response.data)
-        setFormData(response.data)
-      }
-      setLoading(false)
-    }
-    fetchCompany()
-  }, [params.id])
+    fetchCompanies({
+      page,
+      pageSize: 10,
+      search: search || undefined,
+      dateFrom: dateFrom || undefined,
+      dateTo: dateTo || undefined,
+    });
+  }, [page, search, dateFrom, dateTo, fetchCompanies]);
 
-  const handleSave = async () => {
-    if (!company) return
-
-    const response = await updateCompany(company.id, formData)
-    if (response.success && response.data) {
-      setCompany(response.data)
-      setEditing(false)
-      toast({
-        title: "Success",
-        description: "Company details updated successfully",
-      })
-    } else {
-      toast({
-        title: "Error",
-        description: response.error || "Failed to update company",
-        variant: "destructive",
-      })
-    }
-  }
-
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <Skeleton className="h-10 w-48" />
-        <div className="grid gap-6 md:grid-cols-2">
-          <Card>
-            <CardHeader>
-              <Skeleton className="h-6 w-32" />
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {[...Array(6)].map((_, i) => (
-                <Skeleton key={i} className="h-10 w-full" />
-              ))}
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    )
-  }
-
-  if (!company) {
-    return (
-      <div className="flex flex-col items-center justify-center py-12">
-        <p className="text-muted-foreground">Company not found</p>
-        <Button onClick={() => router.back()} className="mt-4">
-          Go Back
-        </Button>
-      </div>
-    )
-  }
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    setPage(1);
+    fetchCompanies({
+      page: 1,
+      pageSize: 10,
+      search: search || undefined,
+      dateFrom: dateFrom || undefined,
+      dateTo: dateTo || undefined,
+    });
+  };
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => router.back()}>
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div>
-            <h2 className="text-3xl font-bold tracking-tight">{company.name}</h2>
-            <p className="text-muted-foreground">Company details and settings</p>
-          </div>
-        </div>
-        <StatusBadge status={company.status} />
+      <div>
+        <h2 className="text-3xl font-bold tracking-tight">Companies</h2>
+        <p className="text-muted-foreground">Manage and view all companies</p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card className="border-l-4 border-l-primary bg-primary/5">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle>Basic Information</CardTitle>
-              <CardDescription>Company profile and contact details</CardDescription>
-            </div>
-            {!editing ? (
-              <Button variant="outline" size="sm" onClick={() => setEditing(true)}>
-                <Edit className="h-4 w-4 mr-2" />
-                Edit
-              </Button>
-            ) : (
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setEditing(false)
-                    setFormData(company)
-                  }}
-                >
-                  Cancel
-                </Button>
-                <Button size="sm" onClick={handleSave}>
-                  Save
-                </Button>
-              </div>
-            )}
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name" className="flex items-center gap-2 text-muted-foreground">
-                <Building2 className="h-4 w-4" />
-                Company Name
-              </Label>
-              <Input
-                id="name"
-                value={editing ? formData.name : company.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                disabled={!editing}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="email" className="flex items-center gap-2 text-muted-foreground">
-                <Mail className="h-4 w-4" />
-                Email
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                value={editing ? formData.email : company.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                disabled={!editing}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="tin" className="flex items-center gap-2 text-muted-foreground">
-                <Hash className="h-4 w-4" />
-                TIN
-              </Label>
-              <Input
-                id="tin"
-                value={editing ? formData.tin : company.tin}
-                onChange={(e) => setFormData({ ...formData, tin: e.target.value })}
-                disabled={!editing}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="address" className="flex items-center gap-2 text-muted-foreground">
-                <MapPin className="h-4 w-4" />
-                Address
-              </Label>
-              <Input
-                id="address"
-                value={editing ? formData.address || "" : company.address || ""}
-                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                disabled={!editing}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="employeeCount" className="flex items-center gap-2 text-muted-foreground">
-                <Users className="h-4 w-4" />
-                Employee Count
-              </Label>
-              <Input
-                id="employeeCount"
-                type="number"
-                value={editing ? formData.employeeCount : company.employeeCount}
-                onChange={(e) => setFormData({ ...formData, employeeCount: Number.parseInt(e.target.value) })}
-                disabled={!editing}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2 text-muted-foreground">
-                <Calendar className="h-4 w-4" />
-                Created Date
-              </Label>
-              <Input value={new Date(company.createdAt).toLocaleDateString()} disabled />
-            </div>
-          </CardContent>
-        </Card>
-
-        <div className="space-y-6">
-          <Card className="border-l-4 border-l-chart-2 bg-chart-2/5">
-            <CardHeader>
-              <CardTitle>HR Manager</CardTitle>
-              <CardDescription>Primary contact for this company</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle>Filters</CardTitle>
+          <CardDescription>Search and filter companies</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSearch} className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-3">
               <div className="space-y-2">
-                <Label className="text-muted-foreground">Name</Label>
+                <label className="text-sm font-medium">Search</label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search by name, email, or TIN..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Date From</label>
                 <Input
-                  value={editing ? formData.hrManagerName || "" : company.hrManagerName || "Not set"}
-                  onChange={(e) => setFormData({ ...formData, hrManagerName: e.target.value })}
-                  disabled={!editing}
+                  type="date"
+                  value={dateFrom}
+                  onChange={(e) => setDateFrom(e.target.value)}
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-muted-foreground">Email</Label>
+                <label className="text-sm font-medium">Date To</label>
                 <Input
-                  type="email"
-                  value={editing ? formData.hrManagerEmail || "" : company.hrManagerEmail || "Not set"}
-                  onChange={(e) => setFormData({ ...formData, hrManagerEmail: e.target.value })}
-                  disabled={!editing}
+                  type="date"
+                  value={dateTo}
+                  onChange={(e) => setDateTo(e.target.value)}
                 />
               </div>
-            </CardContent>
-          </Card>
+            </div>
+            <Button type="submit">Apply Filters</Button>
+          </form>
+        </CardContent>
+      </Card>
 
-          {company.subscription && (
-            <Card className="border-l-4 border-l-accent bg-accent/5">
-              <CardHeader>
-                <CardTitle>Subscription Details</CardTitle>
-                <CardDescription>Current subscription information</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Plan</span>
-                  <span className="text-sm font-medium">{company.subscription.plan}</span>
+      <Card>
+        <CardHeader>
+          <CardTitle>Companies List</CardTitle>
+          <CardDescription>
+            {companiesLoading
+              ? "Loading companies..."
+              : `${companiesPagination?.totalCount || 0} total companies`}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {companiesLoading && companies.length === 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Company Name</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>TIN</TableHead>
+                  <TableHead>Employees</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Created</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {[...Array(5)].map((_, i) => (
+                  <TableRow key={i}>
+                    <TableCell>
+                      <Skeleton className="h-4 w-32" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-40" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-24" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-16" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-5 w-20" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-24" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-8 w-24" />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : companies.length === 0 ? (
+            <div className="text-center py-12">
+              <Building2 className="mx-auto h-12 w-12 text-muted-foreground" />
+              <h3 className="mt-4 text-lg font-semibold">No companies found</h3>
+              <p className="mt-2 text-sm text-muted-foreground">
+                {search || dateFrom || dateTo
+                  ? "Try adjusting your filters"
+                  : "No companies have been registered yet"}
+              </p>
+            </div>
+          ) : (
+            <>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Company Name</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>TIN</TableHead>
+                    <TableHead>Employees</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Created</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {companies.map((company: Company) => (
+                    <TableRow key={company.id}>
+                      <TableCell className="font-medium">
+                        {company.name}
+                      </TableCell>
+                      <TableCell>{company.email || "N/A"}</TableCell>
+                      <TableCell>{company.tin || "N/A"}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Users className="h-4 w-4 text-muted-foreground" />
+                          {company.employeeCount}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <StatusBadge status={company.status} />
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Calendar className="h-4 w-4 text-muted-foreground" />
+                          {new Date(company.createdAt).toLocaleDateString()}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            router.push(`/admin/companies/${company.id}`)
+                          }
+                        >
+                          View Details
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+
+              {companiesPagination && companiesPagination.totalPages > 1 && (
+                <div className="flex items-center justify-between mt-4">
+                  <div className="text-sm text-muted-foreground">
+                    Page {companiesPagination.currentPage} of{" "}
+                    {companiesPagination.totalPages}
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setPage(page - 1)}
+                      disabled={
+                        !companiesPagination.hasPrevPage || companiesLoading
+                      }
+                    >
+                      Previous
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setPage(page + 1)}
+                      disabled={
+                        !companiesPagination.hasNextPage || companiesLoading
+                      }
+                    >
+                      Next
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Status</span>
-                  <StatusBadge status={company.subscription.status} />
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Start Date</span>
-                  <span className="text-sm font-medium">
-                    {new Date(company.subscription.startDate).toLocaleDateString()}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">End Date</span>
-                  <span className="text-sm font-medium">
-                    {new Date(company.subscription.endDate).toLocaleDateString()}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Lifetime Access</span>
-                  <span className="text-sm font-medium">{company.subscription.hasLifetimeAccess ? "Yes" : "No"}</span>
-                </div>
-              </CardContent>
-            </Card>
+              )}
+            </>
           )}
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
-  )
+  );
 }

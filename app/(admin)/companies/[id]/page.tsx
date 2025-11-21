@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { StatusBadge } from "@/components/status_badge"
-import { getCompanyById, updateCompany } from "@/lib/api"
+import { useSuperAdminStore } from "@/store/superadmin.store"
 import type { Company } from "@/lib/types"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useToast } from "@/hooks/use-toast"
@@ -17,42 +17,34 @@ export default function CompanyDetailsPage() {
   const params = useParams()
   const router = useRouter()
   const { toast } = useToast()
-  const [company, setCompany] = useState<Company | null>(null)
-  const [loading, setLoading] = useState(true)
+  const { companies, companiesLoading, fetchCompanies } = useSuperAdminStore()
   const [editing, setEditing] = useState(false)
   const [formData, setFormData] = useState<Partial<Company>>({})
 
   useEffect(() => {
-    async function fetchCompany() {
-      const response = await getCompanyById(params.id as string)
-      if (response.success && response.data) {
-        setCompany(response.data)
-        setFormData(response.data)
-      }
-      setLoading(false)
+    fetchCompanies({ page: 1, pageSize: 1000 })
+  }, [fetchCompanies])
+
+  // Find company from the list
+  const company = companies.find((c) => c.id === params.id as string) || null
+
+  useEffect(() => {
+    if (company) {
+      setFormData(company)
     }
-    fetchCompany()
-  }, [params.id])
+  }, [company])
 
   const handleSave = async () => {
     if (!company) return
-
-    const response = await updateCompany(company.id, formData)
-    if (response.success && response.data) {
-      setCompany(response.data)
-      setEditing(false)
-      toast({
-        title: "Success",
-        description: "Company details updated successfully",
-      })
-    } else {
-      toast({
-        title: "Error",
-        description: response.error || "Failed to update company",
-        variant: "destructive",
-      })
-    }
+    // TODO: Implement update functionality in store
+    toast({
+      title: "Error",
+      description: "Update functionality not yet implemented",
+      variant: "destructive",
+    })
   }
+
+  const loading = companiesLoading && !company
 
   if (loading) {
     return (

@@ -1,5 +1,8 @@
 import { Badge } from "@/components/ui/badge"
-import type { CompanyStatus, SubscriptionStatus, PaymentStatus } from "@/lib/types"
+import type { CompanyStatus } from "@/lib/types"
+
+type SubscriptionStatus = "TRIAL" | "ACTIVE" | "EXPIRED" | "CANCELLED" | "PENDING"
+type PaymentStatus = "PENDING" | "COMPLETED" | "FAILED" | "REFUNDED"
 
 interface StatusBadgeProps {
   status: CompanyStatus | SubscriptionStatus | PaymentStatus
