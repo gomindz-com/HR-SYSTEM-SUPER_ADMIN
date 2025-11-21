@@ -29,7 +29,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, loading, isAuthenticated } = useAuthStore();
+  const { login, loggingIn, isAuthenticated } = useAuthStore();
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -47,15 +47,13 @@ export default function LoginPage() {
   });
 
   const onSubmit = async (values: LoginFormValues) => {
-    try {
-      await login(values.email, values.password);
+    const success = await login(values.email, values.password);
+    if (success) {
       // Small delay to ensure token is stored before navigation
       await new Promise((resolve) => setTimeout(resolve, 100));
       router.push("/dashboard");
-    } catch (error) {
-      // Error is already handled in the store with toast
-      console.error("Login error:", error);
     }
+    // Error is already handled in the store with toast
   };
 
   return (
@@ -88,7 +86,7 @@ export default function LoginPage() {
                           placeholder="Enter your email"
                           className="pl-10"
                           {...field}
-                          disabled={loading}
+                          disabled={loggingIn}
                         />
                       </div>
                     </FormControl>
@@ -111,7 +109,7 @@ export default function LoginPage() {
                           placeholder="Enter your password"
                           className="pl-10"
                           {...field}
-                          disabled={loading}
+                          disabled={loggingIn}
                         />
                       </div>
                     </FormControl>
@@ -120,8 +118,8 @@ export default function LoginPage() {
                 )}
               />
 
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? "Signing in..." : "Sign In"}
+              <Button type="submit" className="w-full" disabled={loggingIn}>
+                {loggingIn ? "Signing in..." : "Sign In"}
               </Button>
             </form>
           </Form>

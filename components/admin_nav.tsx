@@ -2,14 +2,25 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { Building2, LayoutDashboard, CreditCard, Users, Menu, LogOut } from "lucide-react"
+import { 
+  Building2, 
+  LayoutDashboard, 
+  CreditCard, 
+  Wallet, 
+  Menu, 
+  LogOut,
+  Settings,
+  BarChart3,
+  Users
+} from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { useAuthStore } from "@/store/auth.store"
+import Image from "next/image"
 
-const navItems = [
+const managementNavigation = [
   {
     title: "Dashboard",
     href: "/dashboard",
@@ -20,6 +31,9 @@ const navItems = [
     href: "/companies",
     icon: Building2,
   },
+]
+
+const financialNavigation = [
   {
     title: "Subscriptions",
     href: "/subscriptions",
@@ -28,57 +42,144 @@ const navItems = [
   {
     title: "Payments",
     href: "/payments",
-    icon: Users,
+    icon: Wallet,
   },
 ]
+
+const systemNavigation = [
+  {
+    title: "Analytics",
+    href: "/analytics",
+    icon: BarChart3,
+  },
+  {
+    title: "Settings",
+    href: "/settings",
+    icon: Settings,
+  },
+]
+
+// Helper functions shared between components
+const isActive = (pathname: string, path: string) => {
+  if (path === "/") return pathname === "/"
+  return pathname === path || pathname.startsWith(`${path}/`)
+}
+
+const getNavClasses = (pathname: string, path: string) => {
+  const baseClasses =
+    "w-full flex items-center gap-2 rounded-md p-2 text-sm transition-all duration-200 hover:bg-sidebar-accent/80"
+  return isActive(pathname, path)
+    ? `${baseClasses} bg-sidebar-accent text-sidebar-primary font-medium`
+    : `${baseClasses} text-sidebar-foreground hover:text-sidebar-primary`
+}
 
 export function AdminSidebar() {
   const pathname = usePathname()
   const router = useRouter()
   const { logout, user } = useAuthStore()
 
-  const handleLogout = () => {
-    logout()
-    router.push("/login")
+  const handleLogout = async () => {
+    const success = await logout()
+    if (success) {
+      router.push("/login")
+    }
   }
 
   return (
-    <aside className="hidden lg:flex lg:flex-col lg:w-64 lg:border-r lg:border-sidebar-border bg-sidebar">
-      <div className="p-6 border-b border-sidebar-border">
-        <h1 className="text-xl font-bold text-sidebar-foreground">HR System</h1>
-        <p className="text-sm text-muted-foreground mt-1">Super Admin</p>
+    <aside className="hidden lg:flex lg:flex-col lg:w-64 lg:border-r lg:border-sidebar-border bg-sidebar fixed inset-y-0 left-0 z-10 h-screen">
+      <div className="p-4 border-b border-sidebar-border">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center">
+            <Image
+              src="/gomind.png"
+              alt="Gomindz"
+              width={32}
+              height={32}
+              className="w-full h-full object-cover"
+            />
+          </div>
+          <div>
+            <h1 className="text-lg font-bold text-sidebar-foreground">HR System</h1>
+            <p className="text-xs font-medium text-sidebar-primary">Super Admin</p>
+          </div>
+        </div>
       </div>
-      <nav className="flex-1 p-4 space-y-1">
-        {navItems.map((item) => {
-          const Icon = item.icon
-          const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(`${item.href}/`))
+      <nav className="flex-1 p-2 overflow-y-auto sidebar-scrollbar-hidden">
+        {/* Management Section */}
+        <div className="mb-6">
+          <div className="text-sidebar-foreground/70 text-xs font-semibold uppercase tracking-wider mb-2 px-2">
+            Management
+          </div>
+          <div className="space-y-1">
+            {managementNavigation.map((item) => {
+              const Icon = item.icon
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={getNavClasses(pathname, item.href)}
+                >
+                  <Icon className="w-5 h-5 shrink-0" />
+                  <span className="ml-3">{item.title}</span>
+                </Link>
+              )
+            })}
+          </div>
+        </div>
 
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-colors",
-                isActive
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-              )}
-            >
-              <Icon className="h-5 w-5" />
-              {item.title}
-            </Link>
-          )
-        })}
+        {/* Financial Section */}
+        <div className="mb-6">
+          <div className="text-sidebar-foreground/70 text-xs font-semibold uppercase tracking-wider mb-2 px-2">
+            Financial
+          </div>
+          <div className="space-y-1">
+            {financialNavigation.map((item) => {
+              const Icon = item.icon
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={getNavClasses(pathname, item.href)}
+                >
+                  <Icon className="w-5 h-5 shrink-0" />
+                  <span className="ml-3">{item.title}</span>
+                </Link>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* System Section */}
+        <div>
+          <div className="text-sidebar-foreground/70 text-xs font-semibold uppercase tracking-wider mb-2 px-2">
+            System
+          </div>
+          <div className="space-y-1">
+            {systemNavigation.map((item) => {
+              const Icon = item.icon
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={getNavClasses(pathname, item.href)}
+                >
+                  <Icon className="w-5 h-5 shrink-0" />
+                  <span className="ml-3">{item.title}</span>
+                </Link>
+              )
+            })}
+          </div>
+        </div>
       </nav>
-      <div className="p-4 border-t border-sidebar-border">
-        <div className="mb-3 px-4 py-2 text-sm">
+      <div className="p-2 border-t border-sidebar-border">
+        <div className="mb-3 px-3 py-2 text-sm">
           <p className="font-medium text-sidebar-foreground">{user?.name || "Super Admin"}</p>
-          <p className="text-xs text-muted-foreground">{user?.email || ""}</p>
+          <p className="text-xs text-sidebar-foreground/70 truncate">{user?.email || ""}</p>
         </div>
         <Button
           variant="ghost"
           onClick={handleLogout}
-          className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+          className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-primary"
         >
           <LogOut className="h-5 w-5 mr-3" />
           Logout
@@ -94,10 +195,12 @@ export function AdminMobileNav() {
   const { logout, user } = useAuthStore()
   const [open, setOpen] = useState(false)
 
-  const handleLogout = () => {
-    logout()
-    router.push("/login")
-    setOpen(false)
+  const handleLogout = async () => {
+    const success = await logout()
+    if (success) {
+      router.push("/login")
+      setOpen(false)
+    }
   }
 
   return (
@@ -108,43 +211,97 @@ export function AdminMobileNav() {
           <span className="sr-only">Toggle menu</span>
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="w-64 p-0">
-        <div className="p-6 border-b border-border">
-          <h1 className="text-xl font-bold text-foreground">HR System</h1>
-          <p className="text-sm text-muted-foreground mt-1">Super Admin</p>
+      <SheetContent side="left" className="w-64 p-0 bg-sidebar">
+        <div className="p-4 border-b border-sidebar-border">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center">
+              <Building2 className="h-6 w-6 text-sidebar-primary" />
+            </div>
+            <div>
+              <h1 className="text-lg font-bold text-sidebar-foreground">HR System</h1>
+              <p className="text-xs font-medium text-sidebar-primary">Super Admin</p>
+            </div>
+          </div>
         </div>
-        <nav className="flex-1 p-4 space-y-1">
-          {navItems.map((item) => {
-            const Icon = item.icon
-            const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(`${item.href}/`))
+        <nav className="flex-1 p-2 overflow-y-auto sidebar-scrollbar-hidden">
+          {/* Management Section */}
+          <div className="mb-6">
+            <div className="text-sidebar-foreground/70 text-xs font-semibold uppercase tracking-wider mb-2 px-2">
+              Management
+            </div>
+            <div className="space-y-1">
+              {managementNavigation.map((item) => {
+                const Icon = item.icon
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setOpen(false)}
+                    className={getNavClasses(pathname, item.href)}
+                  >
+                    <Icon className="w-5 h-5 shrink-0" />
+                    <span className="ml-3">{item.title}</span>
+                  </Link>
+                )
+              })}
+            </div>
+          </div>
 
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setOpen(false)}
-                className={cn(
-                  "flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-colors",
-                  isActive
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-foreground hover:bg-accent hover:text-accent-foreground",
-                )}
-              >
-                <Icon className="h-5 w-5" />
-                {item.title}
-              </Link>
-            )
-          })}
+          {/* Financial Section */}
+          <div className="mb-6">
+            <div className="text-sidebar-foreground/70 text-xs font-semibold uppercase tracking-wider mb-2 px-2">
+              Financial
+            </div>
+            <div className="space-y-1">
+              {financialNavigation.map((item) => {
+                const Icon = item.icon
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setOpen(false)}
+                    className={getNavClasses(pathname, item.href)}
+                  >
+                    <Icon className="w-5 h-5 shrink-0" />
+                    <span className="ml-3">{item.title}</span>
+                  </Link>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* System Section */}
+          <div>
+            <div className="text-sidebar-foreground/70 text-xs font-semibold uppercase tracking-wider mb-2 px-2">
+              System
+            </div>
+            <div className="space-y-1">
+              {systemNavigation.map((item) => {
+                const Icon = item.icon
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setOpen(false)}
+                    className={getNavClasses(pathname, item.href)}
+                  >
+                    <Icon className="w-5 h-5 shrink-0" />
+                    <span className="ml-3">{item.title}</span>
+                  </Link>
+                )
+              })}
+            </div>
+          </div>
         </nav>
-        <div className="p-4 border-t border-border">
-          <div className="mb-3 px-4 py-2 text-sm">
-            <p className="font-medium text-foreground">{user?.name || "Super Admin"}</p>
-            <p className="text-xs text-muted-foreground">{user?.email || ""}</p>
+        <div className="p-2 border-t border-sidebar-border">
+          <div className="mb-3 px-3 py-2 text-sm">
+            <p className="font-medium text-sidebar-foreground">{user?.name || "Super Admin"}</p>
+            <p className="text-xs text-sidebar-foreground/70 truncate">{user?.email || ""}</p>
           </div>
           <Button
             variant="ghost"
             onClick={handleLogout}
-            className="w-full justify-start"
+            className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-primary"
           >
             <LogOut className="h-5 w-5 mr-3" />
             Logout

@@ -1,109 +1,83 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useAuthStore } from "@/store/auth.store";
 import { AdminMobileNav, AdminSidebar } from "@/components/admin_nav";
-import { Skeleton } from "@/components/ui/skeleton";
+import toast from "react-hot-toast";
 
 export function AuthWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const router = useRouter();
-  const { isAuthenticated, checkingAuth, checkAuth, logout, justLoggedIn } =
-    useAuthStore();
-  const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
+  const { checkAuth, checkingAuth, user, clearAuth } = useAuthStore();
+  const [authChecked, setAuthChecked] = useState(false);
 
-  // Check auth on mount - only once, skip if already authenticated or just logged in
+  // Check auth on mount - always check to ensure we have correct user state
   useEffect(() => {
-    if (hasCheckedAuth) return;
+    const verifyAuth = async () => {
+      // Always check auth to ensure we have the correct user state
+      // This prevents issues with persisted user state
+      await checkAuth();
+      setAuthChecked(true);
+    };
+    verifyAuth();
+  }, [checkAuth]);
 
-    // If we just logged in, don't run checkAuth - trust the login state
-    if (justLoggedIn && isAuthenticated) {
-      setTimeout(() => setHasCheckedAuth(true), 0);
-      return;
-    }
-
-    // If we already have a token and are authenticated, don't re-check immediately
-    const storedToken =
-      typeof window !== "undefined"
-        ? localStorage.getItem("jwt_token") ||
-          localStorage.getItem("token") ||
-          localStorage.getItem("jwt")
-        : null;
-
-    if (!storedToken) {
-      // No token, mark as checked
-      setTimeout(() => setHasCheckedAuth(true), 0);
-      return;
-    }
-
-    if (storedToken && !isAuthenticated) {
-      // We have a token but not authenticated - verify it
-      checkAuth().finally(() => {
-        setTimeout(() => setHasCheckedAuth(true), 0);
-      });
-    } else {
-      // Already authenticated (likely from login), mark as checked
-      setTimeout(() => setHasCheckedAuth(true), 0);
-    }
-  }, [checkAuth, isAuthenticated, hasCheckedAuth, justLoggedIn]);
-
-  // Listen for auth-clear events from axios interceptor
+  // Listen for auth errors from axios interceptor
   useEffect(() => {
+    const handleAuthError = (event: CustomEvent) => {
+      console.log("Auth error event received:", event.detail);
+
+      // Don't show auth error toasts on public pages
+      const currentPath = window.location.pathname;
+      const publicPages = ["/", "/login"];
+      const isOnPublicPage = publicPages.some((page) =>
+        currentPath.startsWith(page)
+      );
+
+      if (!isOnPublicPage) {
+        clearAuth();
+        toast.error(
+          event.detail?.message || "Session expired. Please log in again."
+        );
+      } else {
+        // On public pages, just clear auth without showing toast
+        clearAuth();
+      }
+    };
+
     const handleAuthClear = () => {
       console.log("Auth clear event received");
-      logout();
-      // Use setTimeout to avoid updating router during render
-      setTimeout(() => {
-        router.push("/login");
-      }, 0);
+      clearAuth();
     };
 
-    window.addEventListener("auth-clear", handleAuthClear);
+    window.addEventListener("auth-error", handleAuthError as EventListener);
+    window.addEventListener("auth-clear", handleAuthClear as EventListener);
 
     return () => {
-      window.removeEventListener("auth-clear", handleAuthClear);
+      window.removeEventListener(
+        "auth-error",
+        handleAuthError as EventListener
+      );
+      window.removeEventListener(
+        "auth-clear",
+        handleAuthClear as EventListener
+      );
     };
-  }, [logout, router]);
+  }, [clearAuth]);
 
-  // Don't show sidebar on login page or root page
-  const isLoginPage = pathname === "/login";
-  const isRootPage = pathname === "/";
-
-  // Redirect to login if not authenticated (except if already on login or root pages)
-  // Do this in useEffect to avoid "Cannot update component during render" error
-  useEffect(() => {
-    if (!checkingAuth && !isAuthenticated && !isLoginPage && !isRootPage) {
-      router.push("/login");
-    }
-  }, [checkingAuth, isAuthenticated, isLoginPage, isRootPage, router]);
-
-  // Show loading state while checking auth (except on login and root pages)
-  if (checkingAuth && !isLoginPage && !isRootPage) {
+  // Show loading spinner while checking auth
+  if (!authChecked || checkingAuth) {
     return (
-      <div className="flex min-h-screen bg-background">
-        <div className="w-64 border-r border-border p-4">
-          <Skeleton className="h-10 w-full mb-4" />
-          <div className="space-y-2">
-            <Skeleton className="h-8 w-full" />
-            <Skeleton className="h-8 w-full" />
-            <Skeleton className="h-8 w-full" />
-          </div>
-        </div>
-        <div className="flex-1 flex flex-col">
-          <Skeleton className="h-16 w-full" />
-          <main className="flex-1 p-4 md:p-6 lg:p-8">
-            <Skeleton className="h-full w-full" />
-          </main>
+      <div className="flex items-center justify-center h-screen w-full">
+        <div className="relative">
+          <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
         </div>
       </div>
     );
   }
 
-  // Don't render protected routes if not authenticated (redirect will happen in useEffect above)
-  if (!isAuthenticated && !isLoginPage && !isRootPage) {
-    return null;
-  }
+  const isLoginPage = pathname === "/login";
+  const isRootPage = pathname === "/";
 
   // Show login page or root page without sidebar
   if (isLoginPage || isRootPage) {
@@ -111,11 +85,11 @@ export function AuthWrapper({ children }: { children: React.ReactNode }) {
   }
 
   // Show authenticated layout with sidebar
-  if (isAuthenticated) {
+  if (user) {
     return (
-      <div className="flex min-h-screen bg-background">
+      <div className="min-h-screen bg-background">
         <AdminSidebar />
-        <div className="flex-1 flex flex-col">
+        <div className="flex flex-col lg:ml-64">
           <header className="sticky top-0 z-50 w-full border-b border-border bg-card/95 backdrop-blur supports[backdrop-filter]:bg-card/60 lg:hidden">
             <div className="flex h-16 items-center justify-between px-4">
               <div className="flex items-center gap-3">
@@ -131,5 +105,7 @@ export function AuthWrapper({ children }: { children: React.ReactNode }) {
     );
   }
 
+  // If not authenticated and not on public pages, redirect will happen
+  // Return null to prevent flash of content
   return null;
 }
