@@ -187,7 +187,7 @@ export default function DashboardPage() {
               Monthly revenue over the last 6 months
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="overflow-hidden">
             <ChartContainer
               config={{
                 revenue: {
@@ -195,10 +195,13 @@ export default function DashboardPage() {
                   color: "hsl(var(--chart-1))",
                 },
               }}
-              className="h-[300px]"
+              className="h-[300px] overflow-hidden"
             >
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={revenueData}>
+                <AreaChart
+                  data={revenueData}
+                  margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
+                >
                   <defs>
                     <linearGradient
                       id="colorRevenue"
