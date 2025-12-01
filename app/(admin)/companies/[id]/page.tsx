@@ -111,7 +111,7 @@ export default function CompanyDetailPage() {
       </div>
 
       {/* Trial Warning Banner */}
-      {trialInfo?.isTrial && !trialInfo.isExpired && (
+      {trialInfo?.isTrial && !trialInfo.isExpired && trialInfo.endDate && (
         <Card className="border-yellow-200 bg-yellow-50/50">
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
@@ -146,8 +146,14 @@ export default function CompanyDetailPage() {
                   Trial Period Expired
                 </p>
                 <p className="text-sm text-red-700">
-                  Trial ended on{" "}
-                  {new Date(trialInfo.endDate).toLocaleDateString()}
+                  {trialInfo.endDate ? (
+                    <>
+                      0 days remaining. Trial ended on{" "}
+                      {new Date(trialInfo.endDate).toLocaleDateString()}
+                    </>
+                  ) : (
+                    "Trial period has ended"
+                  )}
                 </p>
               </div>
             </div>

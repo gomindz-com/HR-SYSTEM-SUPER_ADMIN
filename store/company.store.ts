@@ -42,6 +42,7 @@ export interface Subscription {
   subscriptionStatus: string;
   startDate: string;
   endDate: string;
+  trialEndDate: string | null;
   planType: string;
 }
 
