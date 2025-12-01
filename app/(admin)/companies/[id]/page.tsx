@@ -1,281 +1,424 @@
-// "use client"
+"use client";
+import { useEffect } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import { 
+  Building2, 
+  Users, 
+  MapPin, 
+  Briefcase, 
+  Calendar, 
+  CheckCircle2, 
+  XCircle,
+  AlertTriangle,
+  Mail,
+  Phone,
+  Clock,
+  FileText
+} from 'lucide-react';
+import useCompanyDetailStore from '@/store/company.store';
 
-// import { useEffect, useState } from "react"
-// import { useParams, useRouter } from "next/navigation"
-// import { ArrowLeft, Building2, Mail, Hash, MapPin, Users, Calendar, Edit } from "lucide-react"
-// import { Button } from "@/components/ui/button"
-// import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-// import { Input } from "@/components/ui/input"
-// import { Label } from "@/components/ui/label"
-// import { StatusBadge } from "@/components/status_badge"
-// import { useSuperAdminStore } from "@/store/superadmin.store"
-// import type { Company } from "@/lib/types"
-// import { Skeleton } from "@/components/ui/skeleton"
-// import { useToast } from "@/hooks/use-toast"
+export default function CompanyDetailPage() {
+  const params = useParams();
+  const router = useRouter();
+  const { company, detailLoading, fetchCompanyDetail } = useCompanyDetailStore();
 
-// export default function CompanyDetailsPage() {
-//   const params = useParams()
-//   const router = useRouter()
-//   const { toast } = useToast()
-//   const { companies, companiesLoading, fetchCompanies } = useSuperAdminStore()
-//   const [editing, setEditing] = useState(false)
-//   const [formData, setFormData] = useState<Partial<Company>>({})
+  useEffect(() => {
+    if (params.id) {
+      fetchCompanyDetail(params.id as string);
+    }
+  }, [params.id, fetchCompanyDetail]);
 
-//   useEffect(() => {
-//     fetchCompanies({ page: 1, pageSize: 1000 })
-//   }, [fetchCompanies])
+  if (detailLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading company details...</p>
+        </div>
+      </div>
+    );
+  }
 
-//   // Find company from the list
-//   const company = companies.find((c) => c.id === params.id as string) || null
+  if (!company) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <XCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <p className="text-gray-600">Company not found</p>
+        </div>
+      </div>
+    );
+  }
 
-//   useEffect(() => {
-//     if (company) {
-//       setFormData(company)
-//     }
-//   }, [company])
+  const trialInfo = company.trialInfo;
+  const subscription = company.subscription;
 
-//   const handleSave = async () => {
-//     if (!company) return
-//     // TODO: Implement update functionality in store
-//     toast({
-//       title: "Error",
-//       description: "Update functionality not yet implemented",
-//       variant: "destructive",
-//     })
-//   }
-
-//   const loading = companiesLoading && !company
-
-//   if (loading) {
-//     return (
-//       <div className="space-y-6">
-//         <Skeleton className="h-10 w-48" />
-//         <div className="grid gap-6 md:grid-cols-2">
-//           <Card>
-//             <CardHeader>
-//               <Skeleton className="h-6 w-32" />
-//             </CardHeader>
-//             <CardContent className="space-y-4">
-//               {[...Array(6)].map((_, i) => (
-//                 <Skeleton key={i} className="h-10 w-full" />
-//               ))}
-//             </CardContent>
-//           </Card>
-//         </div>
-//       </div>
-//     )
-//   }
-
-//   if (!company) {
-//     return (
-//       <div className="flex flex-col items-center justify-center py-12">
-//         <p className="text-muted-foreground">Company not found</p>
-//         <Button onClick={() => router.back()} className="mt-4">
-//           Go Back
-//         </Button>
-//       </div>
-//     )
-//   }
-
-//   return (
-//     <div className="space-y-6">
-//       <div className="flex items-center justify-between">
-//         <div className="flex items-center gap-4">
-//           <Button variant="ghost" size="icon" onClick={() => router.back()}>
-//             <ArrowLeft className="h-4 w-4" />
-//           </Button>
-//           <div>
-//             <h2 className="text-3xl font-bold tracking-tight">{company.name}</h2>
-//             <p className="text-muted-foreground">Company details and settings</p>
-//           </div>
-//         </div>
-//         <StatusBadge status={company.status} />
-//       </div>
-
-//       <div className="grid gap-6 md:grid-cols-2">
-//         <Card className="border-l-4 border-l-primary bg-primary/5">
-//           <CardHeader className="flex flex-row items-center justify-between">
-//             <div>
-//               <CardTitle>Basic Information</CardTitle>
-//               <CardDescription>Company profile and contact details</CardDescription>
-//             </div>
-//             {!editing ? (
-//               <Button variant="outline" size="sm" onClick={() => setEditing(true)}>
-//                 <Edit className="h-4 w-4 mr-2" />
-//                 Edit
-//               </Button>
-//             ) : (
-//               <div className="flex gap-2">
-//                 <Button
-//                   variant="outline"
-//                   size="sm"
-//                   onClick={() => {
-//                     setEditing(false)
-//                     setFormData(company)
-//                   }}
-//                 >
-//                   Cancel
-//                 </Button>
-//                 <Button size="sm" onClick={handleSave}>
-//                   Save
-//                 </Button>
-//               </div>
-//             )}
-//           </CardHeader>
-//           <CardContent className="space-y-4">
-//             <div className="space-y-2">
-//               <Label htmlFor="name" className="flex items-center gap-2 text-muted-foreground">
-//                 <Building2 className="h-4 w-4" />
-//                 Company Name
-//               </Label>
-//               <Input
-//                 id="name"
-//                 value={editing ? formData.name : company.name}
-//                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-//                 disabled={!editing}
-//               />
-//             </div>
-
-//             <div className="space-y-2">
-//               <Label htmlFor="email" className="flex items-center gap-2 text-muted-foreground">
-//                 <Mail className="h-4 w-4" />
-//                 Email
-//               </Label>
-//               <Input
-//                 id="email"
-//                 type="email"
-//                 value={editing ? formData.email : company.email}
-//                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-//                 disabled={!editing}
-//               />
-//             </div>
-
-//             <div className="space-y-2">
-//               <Label htmlFor="tin" className="flex items-center gap-2 text-muted-foreground">
-//                 <Hash className="h-4 w-4" />
-//                 TIN
-//               </Label>
-//               <Input
-//                 id="tin"
-//                 value={editing ? formData.tin : company.tin}
-//                 onChange={(e) => setFormData({ ...formData, tin: e.target.value })}
-//                 disabled={!editing}
-//               />
-//             </div>
-
-//             <div className="space-y-2">
-//               <Label htmlFor="address" className="flex items-center gap-2 text-muted-foreground">
-//                 <MapPin className="h-4 w-4" />
-//                 Address
-//               </Label>
-//               <Input
-//                 id="address"
-//                 value={editing ? formData.address || "" : company.address || ""}
-//                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-//                 disabled={!editing}
-//               />
-//             </div>
-
-//             <div className="space-y-2">
-//               <Label htmlFor="employeeCount" className="flex items-center gap-2 text-muted-foreground">
-//                 <Users className="h-4 w-4" />
-//                 Employee Count
-//               </Label>
-//               <Input
-//                 id="employeeCount"
-//                 type="number"
-//                 value={editing ? formData.employeeCount : company.employeeCount}
-//                 onChange={(e) => setFormData({ ...formData, employeeCount: Number.parseInt(e.target.value) })}
-//                 disabled={!editing}
-//               />
-//             </div>
-
-//             <div className="space-y-2">
-//               <Label className="flex items-center gap-2 text-muted-foreground">
-//                 <Calendar className="h-4 w-4" />
-//                 Created Date
-//               </Label>
-//               <Input value={new Date(company.createdAt).toLocaleDateString()} disabled />
-//             </div>
-//           </CardContent>
-//         </Card>
-
-//         <div className="space-y-6">
-//           <Card className="border-l-4 border-l-chart-2 bg-chart-2/5">
-//             <CardHeader>
-//               <CardTitle>HR Manager</CardTitle>
-//               <CardDescription>Primary contact for this company</CardDescription>
-//             </CardHeader>
-//             <CardContent className="space-y-4">
-//               <div className="space-y-2">
-//                 <Label className="text-muted-foreground">Name</Label>
-//                 <Input
-//                   value={editing ? formData.hrManagerName || "" : company.hrManagerName || "Not set"}
-//                   onChange={(e) => setFormData({ ...formData, hrManagerName: e.target.value })}
-//                   disabled={!editing}
-//                 />
-//               </div>
-//               <div className="space-y-2">
-//                 <Label className="text-muted-foreground">Email</Label>
-//                 <Input
-//                   type="email"
-//                   value={editing ? formData.hrManagerEmail || "" : company.hrManagerEmail || "Not set"}
-//                   onChange={(e) => setFormData({ ...formData, hrManagerEmail: e.target.value })}
-//                   disabled={!editing}
-//                 />
-//               </div>
-//             </CardContent>
-//           </Card>
-
-//           {company.subscription && (
-//             <Card className="border-l-4 border-l-accent bg-accent/5">
-//               <CardHeader>
-//                 <CardTitle>Subscription Details</CardTitle>
-//                 <CardDescription>Current subscription information</CardDescription>
-//               </CardHeader>
-//               <CardContent className="space-y-4">
-//                 <div className="flex items-center justify-between">
-//                   <span className="text-sm text-muted-foreground">Plan</span>
-//                   <span className="text-sm font-medium">{company.subscription.plan}</span>
-//                 </div>
-//                 <div className="flex items-center justify-between">
-//                   <span className="text-sm text-muted-foreground">Status</span>
-//                   <StatusBadge status={company.subscription.status} />
-//                 </div>
-//                 <div className="flex items-center justify-between">
-//                   <span className="text-sm text-muted-foreground">Start Date</span>
-//                   <span className="text-sm font-medium">
-//                     {new Date(company.subscription.startDate).toLocaleDateString()}
-//                   </span>
-//                 </div>
-//                 <div className="flex items-center justify-between">
-//                   <span className="text-sm text-muted-foreground">End Date</span>
-//                   <span className="text-sm font-medium">
-//                     {new Date(company.subscription.endDate).toLocaleDateString()}
-//                   </span>
-//                 </div>
-//                 <div className="flex items-center justify-between">
-//                   <span className="text-sm text-muted-foreground">Lifetime Access</span>
-//                   <span className="text-sm font-medium">{company.subscription.hasLifetimeAccess ? "Yes" : "No"}</span>
-//                 </div>
-//               </CardContent>
-//             </Card>
-//           )}
-//         </div>
-//       </div>
-//     </div>
-//   )
-// }
-
-import React from 'react'
-
-const page = () => {
   return (
-    <div>
-      
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        {/* Header */}
+        <div className="mb-6">
+          <button 
+            onClick={() => router.back()}
+            className="text-blue-600 hover:text-blue-700 mb-4 inline-flex items-center gap-2"
+          >
+            ← Back
+          </button>
+          
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="flex justify-between items-start">
+              <div className="flex items-start gap-4">
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
+                  <Building2 className="w-8 h-8 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-900">{company.companyName}</h1>
+                  {company.companyDescription && (
+                    <p className="text-gray-600 mt-2">{company.companyDescription}</p>
+                  )}
+                </div>
+              </div>
+              
+              <div className="flex gap-2">
+                {company.hasLifetimeAccess && (
+                  <span className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">
+                    Lifetime Access
+                  </span>
+                )}
+                <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                  subscription?.subscriptionStatus === 'ACTIVE' 
+                    ? 'bg-green-100 text-green-800' 
+                    : subscription?.subscriptionStatus === 'TRIAL'
+                    ? 'bg-yellow-100 text-yellow-800'
+                    : 'bg-gray-100 text-gray-800'
+                }`}>
+                  {subscription?.subscriptionStatus || 'No Subscription'}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Trial Warning Banner */}
+        {trialInfo?.isTrial && !trialInfo.isExpired && (
+          <div className={`rounded-lg p-4 mb-6 ${
+            trialInfo.daysRemaining <= 3 
+              ? 'bg-red-50 border border-red-200' 
+              : 'bg-yellow-50 border border-yellow-200'
+          }`}>
+            <div className="flex items-center gap-3">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                trialInfo.daysRemaining <= 3 
+                  ? 'bg-red-100' 
+                  : 'bg-yellow-100'
+              }`}>
+                <AlertTriangle className={`w-5 h-5 ${
+                  trialInfo.daysRemaining <= 3 
+                    ? 'text-red-600' 
+                    : 'text-yellow-600'
+                }`} />
+              </div>
+              <div className="flex-1">
+                <p className={`font-semibold ${
+                  trialInfo.daysRemaining <= 3 
+                    ? 'text-red-800' 
+                    : 'text-yellow-800'
+                }`}>
+                  Trial Period Active
+                </p>
+                <p className={`text-sm ${
+                  trialInfo.daysRemaining <= 3 
+                    ? 'text-red-700' 
+                    : 'text-yellow-700'
+                }`}>
+                  {trialInfo.daysRemaining} {trialInfo.daysRemaining === 1 ? 'day' : 'days'} remaining until {new Date(trialInfo.endDate).toLocaleDateString()}
+                </p>
+              </div>
+              <button className={`px-4 py-2 rounded-lg font-medium text-sm ${
+                trialInfo.daysRemaining <= 3 
+                  ? 'bg-red-600 hover:bg-red-700' 
+                  : 'bg-yellow-600 hover:bg-yellow-700'
+              } text-white`}>
+                Upgrade Now
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Expired Trial Banner */}
+        {trialInfo?.isExpired && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                <XCircle className="w-5 h-5 text-red-600" />
+              </div>
+              <div className="flex-1">
+                <p className="font-semibold text-red-800">Trial Period Expired</p>
+                <p className="text-sm text-red-700">
+                  Trial ended on {new Date(trialInfo.endDate).toLocaleDateString()}. Upgrade to continue.
+                </p>
+              </div>
+              <button className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium text-sm">
+                Upgrade Now
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Statistics Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 mb-1">Total Employees</p>
+                <p className="text-3xl font-bold text-gray-900">{company._count.employees}</p>
+              </div>
+              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                <Users className="w-6 h-6 text-blue-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 mb-1">Departments</p>
+                <p className="text-3xl font-bold text-gray-900">{company._count.departments}</p>
+              </div>
+              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                <Briefcase className="w-6 h-6 text-green-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 mb-1">Locations</p>
+                <p className="text-3xl font-bold text-gray-900">{company._count.locations}</p>
+              </div>
+              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                <MapPin className="w-6 h-6 text-purple-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 mb-1">Total Attendances</p>
+                <p className="text-3xl font-bold text-gray-900">{company._count.attendances}</p>
+              </div>
+              <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                <Clock className="w-6 h-6 text-orange-600" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          {/* Left Column */}
+          <div className="lg:col-span-2 space-y-6">
+            
+            {/* HR Information */}
+            {company.hr && (
+              <div className="bg-white rounded-lg shadow-sm p-6">
+                <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <Users className="w-5 h-5 text-blue-600" />
+                  HR Contact
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-600">Name</p>
+                    <p className="font-medium text-gray-900">{company.hr.firstName} {company.hr.lastName}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Email</p>
+                    <p className="font-medium text-gray-900 flex items-center gap-2">
+                      <Mail className="w-4 h-4 text-gray-400" />
+                      {company.hr.email}
+                    </p>
+                  </div>
+                  {company.hr.phoneNumber && (
+                    <div>
+                      <p className="text-sm text-gray-600">Phone</p>
+                      <p className="font-medium text-gray-900 flex items-center gap-2">
+                        <Phone className="w-4 h-4 text-gray-400" />
+                        {company.hr.phoneNumber}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Recent Employees */}
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <Users className="w-5 h-5 text-blue-600" />
+                Recent Employees ({company.employees.length})
+              </h2>
+              <div className="space-y-3">
+                {company.employees.map((employee:any) => (
+                  <div key={employee.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                        <span className="text-blue-600 font-semibold">
+                          {employee.firstName[0]}{employee.lastName[0]}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">{employee.firstName} {employee.lastName}</p>
+                        <p className="text-sm text-gray-600">{employee.position || 'No position'}</p>
+                      </div>
+                    </div>
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                      employee.employeeStatus === 'ACTIVE'
+                        ? 'bg-green-100 text-green-800'
+                        : employee.employeeStatus === 'INACTIVE'
+                        ? 'bg-gray-100 text-gray-800'
+                        : 'bg-red-100 text-red-800'
+                    }`}>
+                      {employee.employeeStatus}
+                    </span>
+                  </div>
+                ))}
+                {company.employees.length === 0 && (
+                  <p className="text-gray-500 text-center py-4">No employees found</p>
+                )}
+              </div>
+            </div>
+
+            {/* Departments */}
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <Briefcase className="w-5 h-5 text-green-600" />
+                Departments ({company.departments.length})
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {company.departments.map((dept:any) => (
+                  <div key={dept.id} className="p-4 bg-gray-50 rounded-lg">
+                    <p className="font-medium text-gray-900">{dept.departmentName}</p>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {dept._count.employees} {dept._count.employees === 1 ? 'employee' : 'employees'}
+                    </p>
+                  </div>
+                ))}
+                {company.departments.length === 0 && (
+                  <p className="text-gray-500 text-center py-4 col-span-2">No departments found</p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column */}
+          <div className="space-y-6">
+            
+            {/* Subscription Info */}
+            {subscription && (
+              <div className="bg-white rounded-lg shadow-sm p-6">
+                <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <Calendar className="w-5 h-5 text-purple-600" />
+                  Subscription Details
+                </h2>
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-sm text-gray-600">Plan Type</p>
+                    <p className="font-medium text-gray-900">{subscription.planType}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Status</p>
+                    <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
+                      subscription.subscriptionStatus === 'ACTIVE'
+                        ? 'bg-green-100 text-green-800'
+                        : subscription.subscriptionStatus === 'TRIAL'
+                        ? 'bg-yellow-100 text-yellow-800'
+                        : 'bg-red-100 text-red-800'
+                    }`}>
+                      {subscription.subscriptionStatus}
+                    </span>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Start Date</p>
+                    <p className="font-medium text-gray-900">
+                      {new Date(subscription.startDate).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">End Date</p>
+                    <p className="font-medium text-gray-900">
+                      {new Date(subscription.endDate).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Locations */}
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <MapPin className="w-5 h-5 text-red-600" />
+                Locations ({company.locations.length})
+              </h2>
+              <div className="space-y-3">
+                {company.locations.map((location:any) => (
+                  <div key={location.id} className="p-3 bg-gray-50 rounded-lg">
+                    <p className="font-medium text-gray-900">{location.locationName}</p>
+                    {location.address && (
+                      <p className="text-sm text-gray-600 mt-1">{location.address}</p>
+                    )}
+                  </div>
+                ))}
+                {company.locations.length === 0 && (
+                  <p className="text-gray-500 text-center py-4">No locations found</p>
+                )}
+              </div>
+            </div>
+
+            {/* Additional Stats */}
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <FileText className="w-5 h-5 text-blue-600" />
+                Activity Overview
+              </h2>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Total Attendances</span>
+                  <span className="font-semibold text-gray-900">{company._count.attendances}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Leave Requests</span>
+                  <span className="font-semibold text-gray-900">{company._count.leaveRequests}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Workday Configuration */}
+            {company.WorkdayDaysConfig.length > 0 && (
+              <div className="bg-white rounded-lg shadow-sm p-6">
+                <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <Calendar className="w-5 h-5 text-green-600" />
+                  Workday Schedule
+                </h2>
+                <div className="space-y-2">
+                  {company.WorkdayDaysConfig.map((day:any) => (
+                    <div key={day.id} className="flex justify-between items-center">
+                      <span className="text-gray-700">{day.dayOfWeek}</span>
+                      {day.isWorkday ? (
+                        <CheckCircle2 className="w-5 h-5 text-green-600" />
+                      ) : (
+                        <XCircle className="w-5 h-5 text-gray-400" />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
-  )
+  );
 }
-
-export default page
-
