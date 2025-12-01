@@ -1,6 +1,6 @@
-import { create } from 'zustand';
-import { axiosInstance } from "@/lib/axios"; 
-import toast from 'react-hot-toast';
+import { create } from "zustand";
+import { axiosInstance } from "@/lib/axios";
+import toast from "react-hot-toast";
 
 // Types based on the controller response
 export interface HR {
@@ -61,8 +61,21 @@ export interface TrialInfo {
 export interface CompanyDetail {
   id: number;
   companyName: string;
+  companyEmail: string | null;
+  companyTin: string | null;
+  companyAddress: string | null;
   companyDescription: string | null;
+  timezone: string;
+  workStartTime: string;
+  workEndTime: string;
+  workStartTime2: string;
+  workEndTime2: string;
+  lateThreshold: number;
+  checkInDeadline: number;
+  lateThreshold2: number;
+  checkInDeadline2: number;
   hasLifetimeAccess: boolean;
+  createdAt: string;
   hr: HR | null;
   employees: Employee[];
   departments: Department[];
@@ -88,7 +101,7 @@ interface CompanyDetailStore {
   fetchCompanyDetail: (companyId: number | string) => Promise<CompanyDetail>;
 }
 
-const useCompanyDetailStore = create<CompanyDetailStore>((set, get) => ({
+const useCompanyDetailStore = create<CompanyDetailStore>((set) => ({
   // State
   company: null,
   detailLoading: false,
@@ -96,25 +109,47 @@ const useCompanyDetailStore = create<CompanyDetailStore>((set, get) => ({
   // Actions
   fetchCompanyDetail: async (companyId) => {
     set({ detailLoading: true });
-    
+
     try {
-      const response = await axiosInstance.get(`/api/superadmin/company/${companyId}`);
-      
+      const response = await axiosInstance.get(
+        `/superadmin/company/${companyId}`
+      );
+
       if (!response.data.success) {
-        throw new Error('Failed to fetch company details');
+        throw new Error("Failed to fetch company details");
       }
-      
-      set({ 
-        company: response.data.data, 
-        detailLoading: false
+
+      set({
+        company: response.data.data,
+        detailLoading: false,
       });
       return response.data.data;
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.message || error.message || 'Failed to fetch company details';
+    } catch (error: unknown) {
+      let errorMessage = "Failed to fetch company details";
+      if (error && typeof error === "object") {
+        if (
+          "response" in error &&
+          error.response &&
+          typeof error.response === "object" &&
+          "data" in error.response
+        ) {
+          const data = error.response.data;
+          if (
+            data &&
+            typeof data === "object" &&
+            "message" in data &&
+            typeof data.message === "string"
+          ) {
+            errorMessage = data.message;
+          }
+        } else if ("message" in error && typeof error.message === "string") {
+          errorMessage = error.message;
+        }
+      }
       toast.error(errorMessage);
-      set({ 
+      set({
         detailLoading: false,
-        company: null 
+        company: null,
       });
       throw error;
     }

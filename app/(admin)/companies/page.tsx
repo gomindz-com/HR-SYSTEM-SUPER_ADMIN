@@ -221,7 +221,7 @@ export default function CompaniesPage() {
                           variant="outline"
                           size="sm"
                           onClick={() =>
-                            router.push(`/admin/companies/${company.id}`)
+                            router.push(`/companies/${company.id}`)
                           }
                         >
                           View Details
