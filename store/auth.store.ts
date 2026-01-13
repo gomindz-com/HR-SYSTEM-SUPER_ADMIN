@@ -24,7 +24,7 @@ interface AuthStore {
   loggingIn: boolean;
   loggingOut: boolean;
   checkingAuth: boolean;
-  justLoggedIn: boolean; // Track if we just logged in to skip unnecessary checks
+  justLoggedIn: boolean; 
 
   // Actions
   login: (email: string, password: string) => Promise<boolean>;
