@@ -63,6 +63,7 @@ export const useAuthStore = create<AuthStore>()(
           const { user, token } = response.data.data;
 
           // Validate that user is SUPER_ADMIN (double check from backend)
+          // This should never happen if backend is working correctly, but safety check
           if (user.role !== "SUPER_ADMIN") {
             toast.error("Access denied. Super admin credentials required.");
             set({
