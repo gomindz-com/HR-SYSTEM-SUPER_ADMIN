@@ -21,6 +21,7 @@ interface SuperAdminStore {
     search?: string;
     dateFrom?: string;
     dateTo?: string;
+    subscriptionStatus?: string;
   }) => Promise<void>;
 
   fetchCompanyStats: () => Promise<void>;
@@ -55,6 +56,8 @@ export const useSuperAdminStore = create<SuperAdminStore>((set) => ({
       if (params.search) queryParams.append("search", params.search);
       if (params.dateFrom) queryParams.append("dateFrom", params.dateFrom);
       if (params.dateTo) queryParams.append("dateTo", params.dateTo);
+      if (params.subscriptionStatus)
+        queryParams.append("subscriptionStatus", params.subscriptionStatus);
 
       const queryString = queryParams.toString();
       const url = `/superadmin/companies${

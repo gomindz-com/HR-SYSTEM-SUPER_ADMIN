@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Building2, Search, Users, Calendar } from "lucide-react";
+import { Building2, Search, Users, Calendar, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -20,6 +20,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { StatusBadge } from "@/components/status_badge";
 import { useSuperAdminStore } from "@/store/superadmin.store";
 import { useAuthStore } from "@/store/auth.store";
@@ -35,39 +42,73 @@ export default function CompaniesPage() {
   const [page, setPage] = useState(1);
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [subscriptionStatus, setSubscriptionStatus] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
 
-  // Only fetch companies after auth check is complete and user is authenticated
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(1); // Reset to first page on search change
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  // Fetch companies with real-time filtering
   useEffect(() => {
     if (!checkingAuth && isAuthenticated) {
       fetchCompanies({
         page,
         pageSize: 10,
-        search: search || undefined,
+        search: debouncedSearch || undefined,
         dateFrom: dateFrom || undefined,
         dateTo: dateTo || undefined,
+        subscriptionStatus: subscriptionStatus || undefined,
       });
     }
   }, [
     checkingAuth,
     isAuthenticated,
     page,
-    search,
+    debouncedSearch,
     dateFrom,
     dateTo,
+    subscriptionStatus,
     fetchCompanies,
   ]);
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
+  const clearFilters = () => {
+    setSearch("");
+    setDateFrom("");
+    setDateTo("");
+    setSubscriptionStatus("");
     setPage(1);
-    fetchCompanies({
-      page: 1,
-      pageSize: 10,
-      search: search || undefined,
-      dateFrom: dateFrom || undefined,
-      dateTo: dateTo || undefined,
-    });
   };
+
+  const hasActiveFilters = search || dateFrom || dateTo || subscriptionStatus;
+
+  // Show loading state while checking auth
+  if (checkingAuth) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight">Companies</h2>
+          <p className="text-muted-foreground">Manage and view all companies</p>
+        </div>
+        <Card>
+          <CardContent className="p-12">
+            <div className="flex items-center justify-center">
+              <div className="text-center">
+                <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                <p className="text-muted-foreground">Loading...</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -78,16 +119,25 @@ export default function CompaniesPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Filters</CardTitle>
-          <CardDescription>Search and filter companies</CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Companies List</CardTitle>
+              <CardDescription>
+                {companiesLoading
+                  ? "Loading companies..."
+                  : `${companiesPagination?.totalCount || 0} total companies`}
+              </CardDescription>
+            </div>
+          </div>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSearch} className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-3">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Search</label>
+        <CardContent className="p-0">
+          {/* Filters in table header */}
+          <div className="border-b p-4 space-y-4 bg-muted/30">
+            <div className="flex flex-wrap items-end gap-3">
+              {/* Search */}
+              <div className="flex-1 min-w-[200px]">
                 <div className="relative">
-                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     placeholder="Search by name, email, or TIN..."
                     value={search}
@@ -96,174 +146,241 @@ export default function CompaniesPage() {
                   />
                 </div>
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Date From</label>
-                <Input
-                  type="date"
-                  value={dateFrom}
-                  onChange={(e) => setDateFrom(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Date To</label>
-                <Input
-                  type="date"
-                  value={dateTo}
-                  onChange={(e) => setDateTo(e.target.value)}
-                />
-              </div>
-            </div>
-            <Button type="submit">Apply Filters</Button>
-          </form>
-        </CardContent>
-      </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Companies List</CardTitle>
-          <CardDescription>
-            {companiesLoading
-              ? "Loading companies..."
-              : `${companiesPagination?.totalCount || 0} total companies`}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {companiesLoading && companies.length === 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Company Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>TIN</TableHead>
-                  <TableHead>Employees</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {[...Array(5)].map((_, i) => (
-                  <TableRow key={i}>
-                    <TableCell>
-                      <Skeleton className="h-4 w-32" />
-                    </TableCell>
-                    <TableCell>
-                      <Skeleton className="h-4 w-40" />
-                    </TableCell>
-                    <TableCell>
-                      <Skeleton className="h-4 w-24" />
-                    </TableCell>
-                    <TableCell>
-                      <Skeleton className="h-4 w-16" />
-                    </TableCell>
-                    <TableCell>
-                      <Skeleton className="h-5 w-20" />
-                    </TableCell>
-                    <TableCell>
-                      <Skeleton className="h-4 w-24" />
-                    </TableCell>
-                    <TableCell>
-                      <Skeleton className="h-8 w-24" />
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          ) : companies.length === 0 ? (
-            <div className="text-center py-12">
-              <Building2 className="mx-auto h-12 w-12 text-muted-foreground" />
-              <h3 className="mt-4 text-lg font-semibold">No companies found</h3>
-              <p className="mt-2 text-sm text-muted-foreground">
-                {search || dateFrom || dateTo
-                  ? "Try adjusting your filters"
-                  : "No companies have been registered yet"}
-              </p>
+              {/* Subscription Status Filter */}
+              <div className="w-[180px]">
+                <Select
+                  value={subscriptionStatus ? subscriptionStatus : "all"}
+                  onValueChange={(value) => {
+                    setSubscriptionStatus(value === "all" ? "" : value);
+                    setPage(1);
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Subscription Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Statuses</SelectItem>
+                    <SelectItem value="ACTIVE">Active</SelectItem>
+                    <SelectItem value="TRIAL">Trial</SelectItem>
+                    <SelectItem value="EXPIRED">Expired</SelectItem>
+                    <SelectItem value="PENDING">Pending</SelectItem>
+                    <SelectItem value="LIFETIME">Lifetime</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Date From */}
+              <div className="w-[160px]">
+                <Input
+                  type="date"
+                  placeholder="Date From"
+                  value={dateFrom}
+                  onChange={(e) => {
+                    setDateFrom(e.target.value);
+                    setPage(1);
+                  }}
+                />
+              </div>
+
+              {/* Date To */}
+              <div className="w-[160px]">
+                <Input
+                  type="date"
+                  placeholder="Date To"
+                  value={dateTo}
+                  onChange={(e) => {
+                    setDateTo(e.target.value);
+                    setPage(1);
+                  }}
+                />
+              </div>
+
+              {/* Clear Filters */}
+              {hasActiveFilters && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={clearFilters}
+                  className="whitespace-nowrap"
+                >
+                  <X className="h-4 w-4 mr-2" />
+                  Clear
+                </Button>
+              )}
             </div>
-          ) : (
-            <>
+          </div>
+
+          {/* Table */}
+          <div className="overflow-x-auto">
+            {companiesLoading && companies.length === 0 ? (
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Company Name</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>TIN</TableHead>
-                    <TableHead>Employees</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Created</TableHead>
-                    <TableHead>Actions</TableHead>
+                    <TableHead className="min-w-[180px]">
+                      Company Name
+                    </TableHead>
+                    <TableHead className="min-w-[200px]">Email</TableHead>
+                    <TableHead className="min-w-[120px]">TIN</TableHead>
+                    <TableHead className="min-w-[100px]">Employees</TableHead>
+                    <TableHead className="min-w-[120px]">Status</TableHead>
+                    <TableHead className="min-w-[120px]">Created</TableHead>
+                    <TableHead className="min-w-[120px]">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {companies.map((company: Company) => (
-                    <TableRow key={company.id}>
-                      <TableCell className="font-medium">
-                        {company.name}
-                      </TableCell>
-                      <TableCell>{company.email || "N/A"}</TableCell>
-                      <TableCell>{company.tin || "N/A"}</TableCell>
+                  {[...Array(5)].map((_, i) => (
+                    <TableRow key={i}>
                       <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Users className="h-4 w-4 text-muted-foreground" />
-                          {company.employeeCount}
-                        </div>
+                        <Skeleton className="h-4 w-32" />
                       </TableCell>
                       <TableCell>
-                        <StatusBadge status={company.status} />
+                        <Skeleton className="h-4 w-40" />
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Calendar className="h-4 w-4 text-muted-foreground" />
-                          {new Date(company.createdAt).toLocaleDateString()}
-                        </div>
+                        <Skeleton className="h-4 w-24" />
                       </TableCell>
                       <TableCell>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() =>
-                            router.push(`/companies/${company.id}`)
-                          }
-                        >
-                          View Details
-                        </Button>
+                        <Skeleton className="h-4 w-16" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-5 w-20" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-24" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-8 w-24" />
                       </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
+            ) : companies.length === 0 ? (
+              <div className="text-center py-12">
+                <Building2 className="mx-auto h-12 w-12 text-muted-foreground" />
+                <h3 className="mt-4 text-lg font-semibold">
+                  No companies found
+                </h3>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  {hasActiveFilters
+                    ? "Try adjusting your filters"
+                    : "No companies have been registered yet"}
+                </p>
+              </div>
+            ) : (
+              <>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="min-w-[180px] max-w-[250px]">
+                        Company Name
+                      </TableHead>
+                      <TableHead className="min-w-[200px] max-w-[280px]">
+                        Email
+                      </TableHead>
+                      <TableHead className="min-w-[120px]">TIN</TableHead>
+                      <TableHead className="min-w-[100px]">Employees</TableHead>
+                      <TableHead className="min-w-[120px]">Status</TableHead>
+                      <TableHead className="min-w-[120px]">Created</TableHead>
+                      <TableHead className="min-w-[120px]">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {companies.map((company: Company) => (
+                      <TableRow key={company.id}>
+                        <TableCell className="font-medium max-w-[250px]">
+                          <div className="truncate" title={company.name}>
+                            {company.name}
+                          </div>
+                        </TableCell>
+                        <TableCell className="max-w-[280px]">
+                          <div
+                            className="truncate"
+                            title={company.email || "N/A"}
+                          >
+                            {company.email || "N/A"}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div
+                            className="truncate"
+                            title={company.tin || "N/A"}
+                          >
+                            {company.tin || "N/A"}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Users className="h-4 w-4 text-muted-foreground shrink-0" />
+                            <span>{company.employeeCount}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <StatusBadge status={company.status} />
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
+                            <span className="text-sm">
+                              {new Date(company.createdAt).toLocaleDateString()}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() =>
+                              router.push(`/companies/${company.id}`)
+                            }
+                            className="whitespace-nowrap"
+                          >
+                            View Details
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
 
-              {companiesPagination && companiesPagination.totalPages > 1 && (
-                <div className="flex items-center justify-between mt-4">
-                  <div className="text-sm text-muted-foreground">
-                    Page {companiesPagination.currentPage} of{" "}
-                    {companiesPagination.totalPages}
+                {/* Pagination - Fixed overflow */}
+                {companiesPagination && companiesPagination.totalPages > 1 && (
+                  <div className="border-t p-4">
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                      <div className="text-sm text-muted-foreground whitespace-nowrap">
+                        Page {companiesPagination.currentPage} of{" "}
+                        {companiesPagination.totalPages} (
+                        {companiesPagination.totalCount} total)
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setPage(page - 1)}
+                          disabled={
+                            !companiesPagination.hasPrevPage || companiesLoading
+                          }
+                        >
+                          Previous
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setPage(page + 1)}
+                          disabled={
+                            !companiesPagination.hasNextPage || companiesLoading
+                          }
+                        >
+                          Next
+                        </Button>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setPage(page - 1)}
-                      disabled={
-                        !companiesPagination.hasPrevPage || companiesLoading
-                      }
-                    >
-                      Previous
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setPage(page + 1)}
-                      disabled={
-                        !companiesPagination.hasNextPage || companiesLoading
-                      }
-                    >
-                      Next
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </>
-          )}
+                )}
+              </>
+            )}
+          </div>
         </CardContent>
       </Card>
     </div>
