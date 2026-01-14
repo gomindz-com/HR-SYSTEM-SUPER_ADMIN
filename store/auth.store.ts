@@ -24,7 +24,7 @@ interface AuthStore {
   loggingIn: boolean;
   loggingOut: boolean;
   checkingAuth: boolean;
-  justLoggedIn: boolean; 
+  justLoggedIn: boolean;
 
   // Actions
   login: (email: string, password: string) => Promise<boolean>;
@@ -51,16 +51,27 @@ export const useAuthStore = create<AuthStore>()(
     (set) => ({
       ...initialState,
 
-      // Login action
+      // Login action - uses separate superadmin auth endpoint
       login: async (email: string, password: string) => {
         set({ loggingIn: true });
         try {
-          const response = await axiosInstance.post("/auth/login", {
+          const response = await axiosInstance.post("/superadmin-auth/login", {
             email,
             password,
           });
 
           const { user, token } = response.data.data;
+
+          // Validate that user is SUPER_ADMIN (double check from backend)
+          if (user.role !== "SUPER_ADMIN") {
+            toast.error("Access denied. Super admin credentials required.");
+            set({
+              isAuthenticated: false,
+              user: null,
+              token: null,
+            });
+            return false;
+          }
 
           // Store JWT token in localStorage
           if (typeof window !== "undefined" && token) {
@@ -88,23 +99,28 @@ export const useAuthStore = create<AuthStore>()(
 
           return true;
         } catch (error: unknown) {
-          // Check if error is due to email not verified
-          if (
-            (error as { response?: { data?: { needsVerification?: boolean } } })
-              ?.response?.data?.needsVerification
-          ) {
-            toast.error(
-              "Please verify your email first. Check your inbox and spam folder.",
-              { duration: 6000 }
-            );
-          } else {
-            const errorMessage =
-              (error as { response?: { data?: { message?: string } } })
-                ?.response?.data?.message ||
-              (error as Error)?.message ||
-              "Failed to login. Please check your credentials.";
-            toast.error(errorMessage);
-          }
+          console.error("Login error:", error);
+
+          // Better error handling with detailed messages
+          const axiosError = error as {
+            response?: {
+              status?: number;
+              data?: {
+                message?: string;
+                needsVerification?: boolean;
+              };
+            };
+            message?: string;
+          };
+
+          // Extract error message with fallbacks
+          const errorMessage =
+            axiosError.response?.data?.message ||
+            axiosError.message ||
+            "Failed to login. Please check your credentials.";
+
+          // Show toast with error message
+          toast.error(errorMessage, { duration: 4000 });
 
           set({
             isAuthenticated: false,
@@ -118,11 +134,11 @@ export const useAuthStore = create<AuthStore>()(
         }
       },
 
-      // Logout action
+      // Logout action - uses separate superadmin auth endpoint
       logout: async () => {
         set({ loggingOut: true });
         try {
-          await axiosInstance.post("/auth/logout");
+          await axiosInstance.post("/superadmin-auth/logout");
           set({ user: null });
 
           // Clear JWT token from localStorage (all possible token keys)
@@ -150,7 +166,7 @@ export const useAuthStore = create<AuthStore>()(
         }
       },
 
-      // Check authentication status
+      // Check authentication status - uses separate superadmin auth endpoint
       checkAuth: async () => {
         set({ checkingAuth: true });
 
@@ -174,13 +190,32 @@ export const useAuthStore = create<AuthStore>()(
             return;
           }
 
-          console.log("Making checkAuth request...");
-          const response = await axiosInstance.get("/auth/check-auth");
+          console.log("Making superadmin checkAuth request...");
+          const response = await axiosInstance.get(
+            "/superadmin-auth/check-auth"
+          );
 
           if (response.data.success) {
             const { user } = response.data.data;
 
+            // Validate that user is SUPER_ADMIN (backend should enforce this, but double check)
+            if (user.role !== "SUPER_ADMIN") {
+              console.warn("User is not SUPER_ADMIN, clearing auth");
+              if (typeof window !== "undefined") {
+                localStorage.removeItem("jwt_token");
+                localStorage.removeItem("token");
+                localStorage.removeItem("jwt");
+              }
+              set({
+                ...initialState,
+                checkingAuth: false,
+              });
+              return;
+            }
+
             console.log("checkAuth success:", response.data);
+            console.log("User data:", user);
+            console.log("User role:", user.role);
 
             set({
               user,
@@ -192,7 +227,14 @@ export const useAuthStore = create<AuthStore>()(
             throw new Error("Authentication check failed");
           }
         } catch (error) {
-          console.log("checkAuth error:", error);
+          console.error("checkAuth error:", error);
+          const axiosError = error as {
+            response?: {
+              data?: unknown;
+            };
+          };
+          console.error("Error response:", axiosError?.response?.data);
+
           // Clear invalid token (all possible keys)
           if (typeof window !== "undefined") {
             localStorage.removeItem("jwt_token");
