@@ -111,13 +111,13 @@ export default function CompaniesPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full">
       <div>
         <h2 className="text-3xl font-bold tracking-tight">Companies</h2>
         <p className="text-muted-foreground">Manage and view all companies</p>
       </div>
 
-      <Card>
+      <Card className="w-full">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
@@ -130,25 +130,25 @@ export default function CompaniesPage() {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="p-0">
+        <CardContent className="p-0 w-full">
           {/* Filters in table header */}
-          <div className="border-b p-4 space-y-4 bg-muted/30">
+          <div className="border-b p-4 bg-muted/30 w-full">
             <div className="flex flex-wrap items-end gap-3">
               {/* Search */}
-              <div className="flex-1 min-w-[200px]">
+              <div className="flex-1 min-w-[200px] max-w-full">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     placeholder="Search by name, email, or TIN..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="pl-10"
+                    className="pl-10 w-full"
                   />
                 </div>
               </div>
 
               {/* Subscription Status Filter */}
-              <div className="w-[180px]">
+              <div className="w-[180px] shrink-0">
                 <Select
                   value={subscriptionStatus ? subscriptionStatus : "all"}
                   onValueChange={(value) => {
@@ -156,7 +156,7 @@ export default function CompaniesPage() {
                     setPage(1);
                   }}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder="Subscription Status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -171,7 +171,7 @@ export default function CompaniesPage() {
               </div>
 
               {/* Date From */}
-              <div className="w-[160px]">
+              <div className="w-[160px] shrink-0">
                 <Input
                   type="date"
                   placeholder="Date From"
@@ -180,11 +180,12 @@ export default function CompaniesPage() {
                     setDateFrom(e.target.value);
                     setPage(1);
                   }}
+                  className="w-full"
                 />
               </div>
 
               {/* Date To */}
-              <div className="w-[160px]">
+              <div className="w-[160px] shrink-0">
                 <Input
                   type="date"
                   placeholder="Date To"
@@ -193,6 +194,7 @@ export default function CompaniesPage() {
                     setDateTo(e.target.value);
                     setPage(1);
                   }}
+                  className="w-full"
                 />
               </div>
 
@@ -202,7 +204,7 @@ export default function CompaniesPage() {
                   variant="outline"
                   size="sm"
                   onClick={clearFilters}
-                  className="whitespace-nowrap"
+                  className="whitespace-nowrap shrink-0"
                 >
                   <X className="h-4 w-4 mr-2" />
                   Clear
@@ -212,20 +214,18 @@ export default function CompaniesPage() {
           </div>
 
           {/* Table */}
-          <div className="overflow-x-auto">
+          <div className="w-full overflow-x-auto">
             {companiesLoading && companies.length === 0 ? (
-              <Table>
+              <Table className="w-full">
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="min-w-[180px]">
-                      Company Name
-                    </TableHead>
-                    <TableHead className="min-w-[200px]">Email</TableHead>
-                    <TableHead className="min-w-[120px]">TIN</TableHead>
-                    <TableHead className="min-w-[100px]">Employees</TableHead>
-                    <TableHead className="min-w-[120px]">Status</TableHead>
-                    <TableHead className="min-w-[120px]">Created</TableHead>
-                    <TableHead className="min-w-[120px]">Actions</TableHead>
+                    <TableHead className="w-[180px]">Company Name</TableHead>
+                    <TableHead className="w-[200px]">Email</TableHead>
+                    <TableHead className="w-[120px]">TIN</TableHead>
+                    <TableHead className="w-[100px]">Employees</TableHead>
+                    <TableHead className="w-[120px]">Status</TableHead>
+                    <TableHead className="w-[120px]">Created</TableHead>
+                    <TableHead className="w-[120px]">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -270,31 +270,27 @@ export default function CompaniesPage() {
               </div>
             ) : (
               <>
-                <Table>
+                <Table className="w-full">
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="min-w-[180px] max-w-[250px]">
-                        Company Name
-                      </TableHead>
-                      <TableHead className="min-w-[200px] max-w-[280px]">
-                        Email
-                      </TableHead>
-                      <TableHead className="min-w-[120px]">TIN</TableHead>
-                      <TableHead className="min-w-[100px]">Employees</TableHead>
-                      <TableHead className="min-w-[120px]">Status</TableHead>
-                      <TableHead className="min-w-[120px]">Created</TableHead>
-                      <TableHead className="min-w-[120px]">Actions</TableHead>
+                      <TableHead className="w-[180px]">Company Name</TableHead>
+                      <TableHead className="w-[200px]">Email</TableHead>
+                      <TableHead className="w-[120px]">TIN</TableHead>
+                      <TableHead className="w-[100px]">Employees</TableHead>
+                      <TableHead className="w-[120px]">Status</TableHead>
+                      <TableHead className="w-[120px]">Created</TableHead>
+                      <TableHead className="w-[120px]">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {companies.map((company: Company) => (
                       <TableRow key={company.id}>
-                        <TableCell className="font-medium max-w-[250px]">
+                        <TableCell className="font-medium w-[180px]">
                           <div className="truncate" title={company.name}>
                             {company.name}
                           </div>
                         </TableCell>
-                        <TableCell className="max-w-[280px]">
+                        <TableCell className="w-[200px]">
                           <div
                             className="truncate"
                             title={company.email || "N/A"}
@@ -302,7 +298,7 @@ export default function CompaniesPage() {
                             {company.email || "N/A"}
                           </div>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="w-[120px]">
                           <div
                             className="truncate"
                             title={company.tin || "N/A"}
@@ -310,16 +306,16 @@ export default function CompaniesPage() {
                             {company.tin || "N/A"}
                           </div>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="w-[100px]">
                           <div className="flex items-center gap-2">
                             <Users className="h-4 w-4 text-muted-foreground shrink-0" />
                             <span>{company.employeeCount}</span>
                           </div>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="w-[120px]">
                           <StatusBadge status={company.status} />
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="w-[120px]">
                           <div className="flex items-center gap-2">
                             <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
                             <span className="text-sm">
@@ -327,7 +323,7 @@ export default function CompaniesPage() {
                             </span>
                           </div>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="w-[120px]">
                           <Button
                             variant="outline"
                             size="sm"
@@ -344,11 +340,11 @@ export default function CompaniesPage() {
                   </TableBody>
                 </Table>
 
-                {/* Pagination - Fixed overflow */}
+                {/* Pagination */}
                 {companiesPagination && companiesPagination.totalPages > 1 && (
-                  <div className="border-t p-4">
+                  <div className="border-t p-4 w-full">
                     <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                      <div className="text-sm text-muted-foreground whitespace-nowrap">
+                      <div className="text-sm text-muted-foreground">
                         Page {companiesPagination.currentPage} of{" "}
                         {companiesPagination.totalPages} (
                         {companiesPagination.totalCount} total)
