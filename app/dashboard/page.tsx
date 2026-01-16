@@ -1,16 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import {
   Building2,
   Users,
   Clock,
   XCircle,
   Infinity,
-  DollarSign,
   TrendingUp,
   TrendingDown,
-  FileText,
   CreditCard,
 } from "lucide-react";
 import { MetricCard } from "@/components/metric_card";
@@ -29,15 +27,10 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import Link from "next/link";
 import {
-  Area,
-  AreaChart,
   Bar,
   BarChart,
   CartesianGrid,
-  Line,
-  LineChart,
   XAxis,
   YAxis,
   ResponsiveContainer,
@@ -50,24 +43,6 @@ const subscriptionTrendData = [
   { month: "Apr", active: 68, trial: 14, expired: 6 },
   { month: "May", active: 75, trial: 20, expired: 5 },
   { month: "Jun", active: 82, trial: 16, expired: 7 },
-];
-
-const revenueData = [
-  { month: "Jan", revenue: 45000 },
-  { month: "Feb", revenue: 52000 },
-  { month: "Mar", revenue: 61000 },
-  { month: "Apr", revenue: 68000 },
-  { month: "May", revenue: 75000 },
-  { month: "Jun", revenue: 82000 },
-];
-
-const companyGrowthData = [
-  { month: "Jan", companies: 57 },
-  { month: "Feb", companies: 67 },
-  { month: "Mar", companies: 79 },
-  { month: "Apr", companies: 82 },
-  { month: "May", companies: 95 },
-  { month: "Jun", companies: 98 },
 ];
 
 export default function DashboardPage() {
@@ -179,167 +154,89 @@ export default function DashboardPage() {
         />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle>Revenue Trend</CardTitle>
-            <CardDescription>
-              Monthly revenue over the last 6 months
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="overflow-hidden">
-            <ChartContainer
-              config={{
-                revenue: {
-                  label: "Revenue",
-                  color: "hsl(var(--chart-1))",
-                },
-              }}
-              className="h-[300px] overflow-hidden"
-            >
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart
-                  data={revenueData}
-                  margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
-                >
-                  <defs>
-                    <linearGradient
-                      id="colorRevenue"
-                      x1="0"
-                      y1="0"
-                      x2="0"
-                      y2="1"
-                    >
-                      <stop
-                        offset="5%"
-                        stopColor="hsl(var(--chart-1))"
-                        stopOpacity={0.3}
-                      />
-                      <stop
-                        offset="95%"
-                        stopColor="hsl(var(--chart-1))"
-                        stopOpacity={0}
-                      />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    stroke="hsl(var(--border))"
-                  />
-                  <XAxis
-                    dataKey="month"
-                    stroke="hsl(var(--muted-foreground))"
-                    fontSize={12}
-                  />
-                  <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Area
-                    type="monotone"
-                    dataKey="revenue"
-                    stroke="hsl(var(--chart-1))"
-                    fillOpacity={1}
-                    fill="url(#colorRevenue)"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </ChartContainer>
-          </CardContent>
-        </Card>
-
-        <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle>Company Growth</CardTitle>
-            <CardDescription>Total companies over time</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ChartContainer
-              config={{
-                companies: {
-                  label: "Companies",
-                  color: "hsl(var(--chart-2))",
-                },
-              }}
-              className="h-[300px]"
-            >
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={companyGrowthData}>
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    stroke="hsl(var(--border))"
-                  />
-                  <XAxis
-                    dataKey="month"
-                    stroke="hsl(var(--muted-foreground))"
-                    fontSize={12}
-                  />
-                  <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Line
-                    type="monotone"
-                    dataKey="companies"
-                    stroke="hsl(var(--chart-2))"
-                    strokeWidth={2}
-                    dot={{ fill: "hsl(var(--chart-2))" }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </ChartContainer>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card className="shadow-sm">
-        <CardHeader>
-          <CardTitle>Subscription Status Distribution</CardTitle>
+      <Card className="shadow-sm border-border/40 bg-gradient-to-br from-background to-muted/20">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-xl">Subscription Status Distribution</CardTitle>
           <CardDescription>
             Active, trial, and expired subscriptions over time
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pb-6">
           <ChartContainer
             config={{
               active: {
                 label: "Active",
-                color: "hsl(var(--chart-2))",
+                color: "hsl(142, 76%, 36%)",
               },
               trial: {
                 label: "Trial",
-                color: "hsl(var(--chart-3))",
+                color: "hsl(45, 93%, 47%)",
               },
               expired: {
                 label: "Expired",
-                color: "hsl(var(--chart-4))",
+                color: "hsl(0, 84%, 60%)",
               },
             }}
-            className="h-[300px]"
+            className="h-[320px]"
           >
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={subscriptionTrendData}>
+              <BarChart 
+                data={subscriptionTrendData}
+                margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+              >
+                <defs>
+                  <linearGradient id="activeGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="hsl(142, 76%, 36%)" stopOpacity={0.9} />
+                    <stop offset="100%" stopColor="hsl(142, 76%, 36%)" stopOpacity={0.6} />
+                  </linearGradient>
+                  <linearGradient id="trialGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="hsl(45, 93%, 47%)" stopOpacity={0.9} />
+                    <stop offset="100%" stopColor="hsl(45, 93%, 47%)" stopOpacity={0.6} />
+                  </linearGradient>
+                  <linearGradient id="expiredGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="hsl(0, 84%, 60%)" stopOpacity={0.9} />
+                    <stop offset="100%" stopColor="hsl(0, 84%, 60%)" stopOpacity={0.6} />
+                  </linearGradient>
+                </defs>
                 <CartesianGrid
                   strokeDasharray="3 3"
                   stroke="hsl(var(--border))"
+                  strokeOpacity={0.3}
                 />
                 <XAxis
                   dataKey="month"
                   stroke="hsl(var(--muted-foreground))"
                   fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
                 />
-                <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                <ChartTooltip content={<ChartTooltipContent />} />
+                <YAxis 
+                  stroke="hsl(var(--muted-foreground))" 
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <ChartTooltip 
+                  content={<ChartTooltipContent />}
+                  cursor={{ fill: 'hsl(var(--muted))', opacity: 0.1 }}
+                />
                 <Bar
                   dataKey="active"
-                  fill="hsl(var(--chart-2))"
-                  radius={[4, 4, 0, 0]}
+                  fill="url(#activeGradient)"
+                  radius={[6, 6, 0, 0]}
+                  maxBarSize={60}
                 />
                 <Bar
                   dataKey="trial"
-                  fill="hsl(var(--chart-3))"
-                  radius={[4, 4, 0, 0]}
+                  fill="url(#trialGradient)"
+                  radius={[6, 6, 0, 0]}
+                  maxBarSize={60}
                 />
                 <Bar
                   dataKey="expired"
-                  fill="hsl(var(--chart-4))"
-                  radius={[4, 4, 0, 0]}
+                  fill="url(#expiredGradient)"
+                  radius={[6, 6, 0, 0]}
+                  maxBarSize={60}
                 />
               </BarChart>
             </ResponsiveContainer>
@@ -347,17 +244,17 @@ export default function DashboardPage() {
         </CardContent>
       </Card>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle>Quick Stats</CardTitle>
+      <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2">
+        <Card className="shadow-sm border-border/40 hover:shadow-md transition-shadow">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg">Quick Stats</CardTitle>
             <CardDescription>Key performance indicators</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Active Rate</span>
+          <CardContent className="space-y-3">
+            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+              <span className="text-sm font-medium text-muted-foreground">Active Rate</span>
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium">
+                <span className="text-sm font-bold text-foreground">
                   {metrics?.totalCompanies
                     ? Math.round(
                         (metrics.companiesWithActiveSubscription /
@@ -367,13 +264,13 @@ export default function DashboardPage() {
                     : 0}
                   %
                 </span>
-                <TrendingUp className="h-4 w-4 text-chart-2" />
+                <TrendingUp className="h-4 w-4 text-emerald-600" />
               </div>
             </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Trial Rate</span>
+            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+              <span className="text-sm font-medium text-muted-foreground">Trial Rate</span>
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium">
+                <span className="text-sm font-bold text-foreground">
                   {metrics?.totalCompanies
                     ? Math.round(
                         (metrics.companiesWithTrialSubscription /
@@ -383,13 +280,13 @@ export default function DashboardPage() {
                     : 0}
                   %
                 </span>
-                <TrendingUp className="h-4 w-4 text-chart-2" />
+                <TrendingUp className="h-4 w-4 text-emerald-600" />
               </div>
             </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Churn Rate</span>
+            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+              <span className="text-sm font-medium text-muted-foreground">Churn Rate</span>
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium">
+                <span className="text-sm font-bold text-foreground">
                   {metrics?.totalCompanies
                     ? Math.round(
                         (metrics.companiesWithExpiredSubscription /
@@ -399,45 +296,45 @@ export default function DashboardPage() {
                     : 0}
                   %
                 </span>
-                <TrendingDown className="h-4 w-4 text-chart-4" />
+                <TrendingDown className="h-4 w-4 text-rose-600" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle>Subscription Overview</CardTitle>
+        <Card className="shadow-sm border-border/40 hover:shadow-md transition-shadow">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg">Subscription Overview</CardTitle>
             <CardDescription>Subscription status breakdown</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">
+          <CardContent className="space-y-3">
+            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+              <span className="text-sm font-medium text-muted-foreground">
                 Active Companies
               </span>
-              <span className="text-sm font-medium">
+              <span className="text-sm font-bold text-foreground">
                 {metrics?.companiesWithActiveSubscription || 0}
               </span>
             </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">
+            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+              <span className="text-sm font-medium text-muted-foreground">
                 Trial Companies
               </span>
-              <span className="text-sm font-medium">
+              <span className="text-sm font-bold text-foreground">
                 {metrics?.companiesWithTrialSubscription || 0}
               </span>
             </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">
+            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+              <span className="text-sm font-medium text-muted-foreground">
                 Lifetime Access
               </span>
-              <span className="text-sm font-medium">
+              <span className="text-sm font-bold text-foreground">
                 {metrics?.companiesWithLifetimeAccess || 0}
               </span>
             </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Pending</span>
-              <span className="text-sm font-medium">
+            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+              <span className="text-sm font-medium text-muted-foreground">Pending</span>
+              <span className="text-sm font-bold text-foreground">
                 {metrics?.companiesWithPendingSubscription || 0}
               </span>
             </div>

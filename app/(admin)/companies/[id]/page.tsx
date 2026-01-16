@@ -96,17 +96,14 @@ export default function CompanyDetailPage() {
         <div>
           <button
             onClick={() => router.back()}
-            className="mb-4 inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+            className="mb-4 inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors font-b"
           >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Companies
+            <ArrowLeft className="w-4 h-4 text-black" />
+            Back 
           </button>
           <h1 className="text-3xl font-bold tracking-tight">
             Company Details
           </h1>
-          <p className="text-muted-foreground">
-            View comprehensive information about this company
-          </p>
         </div>
       </div>
 
@@ -160,6 +157,75 @@ export default function CompanyDetailPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">
+                  Total Employees
+                </p>
+                <p className="text-3xl font-bold">{company._count.employees}</p>
+              </div>
+              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                <Users className="w-6 h-6 text-blue-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">
+                  Departments
+                </p>
+                <p className="text-3xl font-bold">
+                  {company._count.departments}
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                <Briefcase className="w-6 h-6 text-green-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">Locations</p>
+                <p className="text-3xl font-bold">{company._count.locations}</p>
+              </div>
+              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                <MapPin className="w-6 h-6 text-purple-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">
+                  Total Attendances
+                </p>
+                <p className="text-3xl font-bold">
+                  {company._count.attendances}
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                <Clock className="w-6 h-6 text-orange-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Company Overview */}
       <Card>
@@ -254,75 +320,6 @@ export default function CompanyDetailPage() {
         </CardContent>
       </Card>
 
-      {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">
-                  Total Employees
-                </p>
-                <p className="text-3xl font-bold">{company._count.employees}</p>
-              </div>
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <Users className="w-6 h-6 text-blue-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">
-                  Departments
-                </p>
-                <p className="text-3xl font-bold">
-                  {company._count.departments}
-                </p>
-              </div>
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                <Briefcase className="w-6 h-6 text-green-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Locations</p>
-                <p className="text-3xl font-bold">{company._count.locations}</p>
-              </div>
-              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                <MapPin className="w-6 h-6 text-purple-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">
-                  Total Attendances
-                </p>
-                <p className="text-3xl font-bold">
-                  {company._count.attendances}
-                </p>
-              </div>
-              <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                <Clock className="w-6 h-6 text-orange-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
       {/* Attendance Settings */}
       <Card>
         <CardHeader>
@@ -330,9 +327,9 @@ export default function CompanyDetailPage() {
             <Settings className="h-5 w-5" />
             Attendance Settings
           </CardTitle>
-          <CardDescription>
+          {/* <CardDescription>
             Work hours and attendance configuration
-          </CardDescription>
+          </CardDescription> */}
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -427,7 +424,7 @@ export default function CompanyDetailPage() {
                 HR Contact
               </CardTitle>
               <CardDescription>
-                Primary HR representative for this company
+                Company HR 
               </CardDescription>
             </CardHeader>
             <CardContent>
