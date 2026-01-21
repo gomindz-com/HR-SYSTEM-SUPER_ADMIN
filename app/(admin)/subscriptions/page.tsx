@@ -345,14 +345,14 @@
 // }
 
 
-import React from 'react'
+"use client";
 
-const page = () => {
+import { SubscriptionsTable } from "@/components/SubscriptionsTable";
+
+export default function SubscriptionsPage() {
   return (
-    <div>
-      
+    <div className="container mx-auto py-6">
+      <SubscriptionsTable />
     </div>
-  )
+  );
 }
-
-export default page
