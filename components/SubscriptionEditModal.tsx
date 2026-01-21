@@ -33,6 +33,7 @@ import {
 import { CreditCard, Calendar, Clock } from "lucide-react";
 import { useSubscriptionStore } from "@/store/subscription.store";
 import type { SubscriptionListItem, UpdateSubscriptionData } from "@/store/subscription.store";
+import { axiosInstance } from "@/lib/axios";
 
 // Zod schema for form validation
 const subscriptionUpdateSchema = z.object({
@@ -61,6 +62,15 @@ const subscriptionUpdateSchema = z.object({
 
 type SubscriptionUpdateFormData = z.infer<typeof subscriptionUpdateSchema>;
 
+interface SubscriptionPlan {
+  id: string;
+  name: string;
+  price: number;
+  maxEmployees: number | null;
+  features: string[];
+  isActive: boolean;
+}
+
 interface SubscriptionEditModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -76,6 +86,8 @@ export default function SubscriptionEditModal({
 }: SubscriptionEditModalProps) {
   const { updateSubscription } = useSubscriptionStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
+  const [isLoadingPlans, setIsLoadingPlans] = useState(false);
 
   const form = useForm<SubscriptionUpdateFormData>({
     resolver: zodResolver(subscriptionUpdateSchema),
@@ -93,6 +105,26 @@ export default function SubscriptionEditModal({
       planId: subscription.planId,
     },
   });
+
+  // Fetch plans when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      const fetchPlans = async () => {
+        setIsLoadingPlans(true);
+        try {
+          const response = await axiosInstance.get("/subscription/plans");
+          if (response.data.success && response.data.plans) {
+            setPlans(response.data.plans);
+          }
+        } catch (error) {
+          console.error("Error fetching plans:", error);
+        } finally {
+          setIsLoadingPlans(false);
+        }
+      };
+      fetchPlans();
+    }
+  }, [isOpen]);
 
   // Update form when subscription changes
   useEffect(() => {
@@ -137,7 +169,7 @@ export default function SubscriptionEditModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-300/30 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-gray-400/50 dark:[&::-webkit-scrollbar-thumb]:bg-gray-600/30 dark:hover:[&::-webkit-scrollbar-thumb]:bg-gray-500/50 [scrollbar-width:thin] [scrollbar-color:rgba(156,163,175,0.3)_transparent]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
             <CreditCard className="h-6 w-6 text-primary" />
@@ -187,14 +219,27 @@ export default function SubscriptionEditModal({
               name="planId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-sm font-medium">Plan ID</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Enter plan ID"
-                      {...field}
-                      value={field.value || ""}
-                    />
-                  </FormControl>
+                  <FormLabel className="text-sm font-medium">
+                    Subscription Plan
+                  </FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value}
+                    disabled={isLoadingPlans}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder={isLoadingPlans ? "Loading plans..." : "Select plan"} />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {plans.map((plan) => (
+                        <SelectItem key={plan.id} value={plan.id}>
+                          {plan.name} ({plan.id})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormDescription className="text-xs">
                     Current plan: {subscription.plan.name}
                   </FormDescription>
