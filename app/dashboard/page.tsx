@@ -182,6 +182,7 @@ export default function DashboardPage() {
       <div className="grid gap-4 lg:grid-cols-2">
         <Card className="shadow-sm">
           <CardHeader>
+          
             <CardTitle>Revenue Trend</CardTitle>
             <CardDescription>
               Monthly revenue over the last 6 months

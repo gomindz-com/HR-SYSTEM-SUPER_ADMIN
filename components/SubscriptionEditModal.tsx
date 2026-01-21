@@ -30,10 +30,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CreditCard, Calendar, Clock } from "lucide-react";
+import { CreditCard, CalendarIcon, Clock } from "lucide-react";
 import { useSubscriptionStore } from "@/store/subscription.store";
 import type { SubscriptionListItem, UpdateSubscriptionData } from "@/store/subscription.store";
 import { axiosInstance } from "@/lib/axios";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 // Zod schema for form validation
 const subscriptionUpdateSchema = z.object({
@@ -253,18 +257,46 @@ export default function SubscriptionEditModal({
               control={form.control}
               name="startDate"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="flex flex-col">
                   <FormLabel className="text-sm font-medium flex items-center gap-2">
-                    <Calendar className="h-4 w-4" />
+                    <CalendarIcon className="h-4 w-4" />
                     Start Date
                   </FormLabel>
-                  <FormControl>
-                    <Input
-                      type="date"
-                      {...field}
-                      value={field.value || ""}
-                    />
-                  </FormControl>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "w-full pl-3 pr-3 h-10 text-left font-normal justify-between",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          <span>
+                            {field.value ? (
+                              format(new Date(field.value), "PPP")
+                            ) : (
+                              "Pick a date"
+                            )}
+                          </span>
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50 shrink-0" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0 min-w-[320px]" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value ? new Date(field.value) : undefined}
+                        onSelect={(date) => {
+                          field.onChange(
+                            date ? date.toISOString().split("T")[0] : ""
+                          );
+                        }}
+                        initialFocus
+                        className="rounded-md"
+                      />
+                    </PopoverContent>
+                  </Popover>
                   <FormMessage />
                 </FormItem>
               )}
@@ -275,22 +307,50 @@ export default function SubscriptionEditModal({
               control={form.control}
               name="endDate"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="flex flex-col">
                   <FormLabel className="text-sm font-medium flex items-center gap-2">
-                    <Calendar className="h-4 w-4" />
+                    <CalendarIcon className="h-4 w-4" />
                     End Date
                     {(currentStatus === "ACTIVE" ||
                       currentStatus === "CANCELLED") && (
                       <span className="text-red-500">*</span>
                     )}
                   </FormLabel>
-                  <FormControl>
-                    <Input
-                      type="date"
-                      {...field}
-                      value={field.value || ""}
-                    />
-                  </FormControl>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "w-full pl-3 pr-3 h-10 text-left font-normal justify-between",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          <span>
+                            {field.value ? (
+                              format(new Date(field.value), "PPP")
+                            ) : (
+                              "Pick a date"
+                            )}
+                          </span>
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50 shrink-0" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0 min-w-[320px]" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value ? new Date(field.value) : undefined}
+                        onSelect={(date) => {
+                          field.onChange(
+                            date ? date.toISOString().split("T")[0] : ""
+                          );
+                        }}
+                        initialFocus
+                        className="rounded-md"
+                      />
+                    </PopoverContent>
+                  </Popover>
                   {(currentStatus === "ACTIVE" ||
                     currentStatus === "CANCELLED") && (
                     <FormDescription className="text-xs text-amber-600">
@@ -307,7 +367,7 @@ export default function SubscriptionEditModal({
               control={form.control}
               name="trialEndDate"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="flex flex-col">
                   <FormLabel className="text-sm font-medium flex items-center gap-2">
                     <Clock className="h-4 w-4" />
                     Trial End Date
@@ -315,13 +375,41 @@ export default function SubscriptionEditModal({
                       <span className="text-red-500">*</span>
                     )}
                   </FormLabel>
-                  <FormControl>
-                    <Input
-                      type="date"
-                      {...field}
-                      value={field.value || ""}
-                    />
-                  </FormControl>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "w-full pl-3 pr-3 h-10 text-left font-normal justify-between",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          <span>
+                            {field.value ? (
+                              format(new Date(field.value), "PPP")
+                            ) : (
+                              "Pick a date"
+                            )}
+                          </span>
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50 shrink-0" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value ? new Date(field.value) : undefined}
+                        onSelect={(date) => {
+                          field.onChange(
+                            date ? date.toISOString().split("T")[0] : ""
+                          );
+                        }}
+                        disabled={(date) => date < new Date()}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
                   {currentStatus === "TRIAL" && (
                     <FormDescription className="text-xs text-amber-600">
                       Trial end date is required for TRIAL status and must be in the future

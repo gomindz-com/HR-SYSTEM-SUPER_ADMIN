@@ -481,17 +481,31 @@ export function SubscriptionsTable() {
       </div>
 
       {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
-        <TabsList className="grid w-full max-w-md grid-cols-2">
-          <TabsTrigger value="subscriptions">
-            <CreditCard className="h-4 w-4 mr-2" />
-            Subscriptions ({subscriptionsPagination?.totalCount || 0})
-          </TabsTrigger>
-          <TabsTrigger value="lifetime">
-            <CheckCircle2 className="h-4 w-4 mr-2" />
-            Lifetime Access ({lifetimeCompaniesPagination?.totalCount || 0})
-          </TabsTrigger>
-        </TabsList>
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="w-full">
+        <div className="flex items-center justify-between mb-6">
+          <TabsList className="grid w-full max-w-lg grid-cols-2">
+            <TabsTrigger value="subscriptions" className="gap-2">
+              <CreditCard className="h-4 w-4" />
+              <span>Subscriptions</span>
+              <Badge 
+                variant="secondary" 
+                className="ml-1.5 h-5 min-w-5 px-1.5 text-xs font-semibold bg-primary/10 text-primary border-0"
+              >
+                {subscriptionsPagination?.totalCount || 0}
+              </Badge>
+            </TabsTrigger>
+            <TabsTrigger value="lifetime" className="gap-2">
+              <CheckCircle2 className="h-4 w-4" />
+              <span>Lifetime Access</span>
+              <Badge 
+                variant="secondary" 
+                className="ml-1.5 h-5 min-w-5 px-1.5 text-xs font-semibold bg-primary/10 text-primary border-0"
+              >
+                {lifetimeCompaniesPagination?.totalCount || 0}
+              </Badge>
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         {/* Subscriptions Tab */}
         <TabsContent value="subscriptions" className="space-y-4">
