@@ -14,6 +14,7 @@ import {
 import { MetricCard } from "@/components/metric_card";
 import { useSuperAdminStore } from "@/store/superadmin.store";
 import { useAuthStore } from "@/store/auth.store";
+import useSubscriptionAnalyticsStore from "@/store/subscriptionTrend.store";
 import {
   Card,
   CardContent,
@@ -36,19 +37,12 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-const subscriptionTrendData = [
-  { month: "Jan", active: 45, trial: 12, expired: 5 },
-  { month: "Feb", active: 52, trial: 15, expired: 3 },
-  { month: "Mar", active: 61, trial: 18, expired: 4 },
-  { month: "Apr", active: 68, trial: 14, expired: 6 },
-  { month: "May", active: 75, trial: 20, expired: 5 },
-  { month: "Jun", active: 82, trial: 16, expired: 7 },
-];
-
 export default function DashboardPage() {
   const { companyStats, statsLoading, fetchCompanyStats } =
     useSuperAdminStore();
   const { isAuthenticated, checkingAuth } = useAuthStore();
+  const { trends, trendsLoading, fetchSubscriptionTrends } =
+    useSubscriptionAnalyticsStore();
 
   // Only fetch stats after auth check is complete and user is authenticated
   // Also ensure token exists in localStorage
@@ -68,11 +62,12 @@ export default function DashboardPage() {
       // Small delay to ensure axios interceptor has time to attach token
       const timeoutId = setTimeout(() => {
         fetchCompanyStats();
+        fetchSubscriptionTrends(6); // Fetch 6 months of subscription trends
       }, 100);
 
       return () => clearTimeout(timeoutId);
     }
-  }, [checkingAuth, isAuthenticated, fetchCompanyStats]);
+  }, [checkingAuth, isAuthenticated, fetchCompanyStats, fetchSubscriptionTrends]);
 
   const loading = statsLoading;
   const metrics = companyStats;
@@ -156,91 +151,145 @@ export default function DashboardPage() {
 
       <Card className="shadow-sm border-border/40 bg-gradient-to-br from-background to-muted/20">
         <CardHeader className="pb-4">
-          <CardTitle className="text-xl">Subscription Status Distribution</CardTitle>
+          <CardTitle className="text-xl">
+            Subscription Status Distribution
+          </CardTitle>
           <CardDescription>
             Active, trial, and expired subscriptions over time
           </CardDescription>
         </CardHeader>
         <CardContent className="pb-6">
-          <ChartContainer
-            config={{
-              active: {
-                label: "Active",
-                color: "hsl(142, 76%, 36%)",
-              },
-              trial: {
-                label: "Trial",
-                color: "hsl(45, 93%, 47%)",
-              },
-              expired: {
-                label: "Expired",
-                color: "hsl(0, 84%, 60%)",
-              },
-            }}
-            className="h-[320px]"
-          >
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart 
-                data={subscriptionTrendData}
-                margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
-              >
-                <defs>
-                  <linearGradient id="activeGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="hsl(142, 76%, 36%)" stopOpacity={0.9} />
-                    <stop offset="100%" stopColor="hsl(142, 76%, 36%)" stopOpacity={0.6} />
-                  </linearGradient>
-                  <linearGradient id="trialGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="hsl(45, 93%, 47%)" stopOpacity={0.9} />
-                    <stop offset="100%" stopColor="hsl(45, 93%, 47%)" stopOpacity={0.6} />
-                  </linearGradient>
-                  <linearGradient id="expiredGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="hsl(0, 84%, 60%)" stopOpacity={0.9} />
-                    <stop offset="100%" stopColor="hsl(0, 84%, 60%)" stopOpacity={0.6} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  stroke="hsl(var(--border))"
-                  strokeOpacity={0.3}
-                />
-                <XAxis
-                  dataKey="month"
-                  stroke="hsl(var(--muted-foreground))"
-                  fontSize={12}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <YAxis 
-                  stroke="hsl(var(--muted-foreground))" 
-                  fontSize={12}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <ChartTooltip 
-                  content={<ChartTooltipContent />}
-                  cursor={{ fill: 'hsl(var(--muted))', opacity: 0.1 }}
-                />
-                <Bar
-                  dataKey="active"
-                  fill="url(#activeGradient)"
-                  radius={[6, 6, 0, 0]}
-                  maxBarSize={60}
-                />
-                <Bar
-                  dataKey="trial"
-                  fill="url(#trialGradient)"
-                  radius={[6, 6, 0, 0]}
-                  maxBarSize={60}
-                />
-                <Bar
-                  dataKey="expired"
-                  fill="url(#expiredGradient)"
-                  radius={[6, 6, 0, 0]}
-                  maxBarSize={60}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </ChartContainer>
+          {trendsLoading ? (
+            <div className="h-[320px] flex items-center justify-center">
+              <p className="text-muted-foreground">Loading chart data...</p>
+            </div>
+          ) : trends.length === 0 ? (
+            <div className="h-[320px] flex items-center justify-center">
+              <p className="text-muted-foreground">No subscription data available</p>
+            </div>
+          ) : (
+            <ChartContainer
+              config={{
+                active: {
+                  label: "Active",
+                  color: "hsl(142, 76%, 36%)",
+                },
+                trial: {
+                  label: "Trial",
+                  color: "hsl(45, 93%, 47%)",
+                },
+                expired: {
+                  label: "Expired",
+                  color: "hsl(0, 84%, 60%)",
+                },
+              }}
+              className="h-[320px]"
+            >
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={trends}
+                  margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+                >
+                  <defs>
+                    <linearGradient
+                      id="activeGradient"
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
+                      <stop
+                        offset="0%"
+                        stopColor="hsl(142, 76%, 36%)"
+                        stopOpacity={0.9}
+                      />
+                      <stop
+                        offset="100%"
+                        stopColor="hsl(142, 76%, 36%)"
+                        stopOpacity={0.6}
+                      />
+                    </linearGradient>
+                    <linearGradient
+                      id="trialGradient"
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
+                      <stop
+                        offset="0%"
+                        stopColor="hsl(45, 93%, 47%)"
+                        stopOpacity={0.9}
+                      />
+                      <stop
+                        offset="100%"
+                        stopColor="hsl(45, 93%, 47%)"
+                        stopOpacity={0.6}
+                      />
+                    </linearGradient>
+                    <linearGradient
+                      id="expiredGradient"
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
+                      <stop
+                        offset="0%"
+                        stopColor="hsl(0, 84%, 60%)"
+                        stopOpacity={0.9}
+                      />
+                      <stop
+                        offset="100%"
+                        stopColor="hsl(0, 84%, 60%)"
+                        stopOpacity={0.6}
+                      />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    stroke="hsl(var(--border))"
+                    strokeOpacity={0.3}
+                  />
+                  <XAxis
+                    dataKey="month"
+                    stroke="hsl(var(--muted-foreground))"
+                    fontSize={12}
+                    tickLine={false}
+                    axisLine={false}
+                  />
+                  <YAxis
+                    stroke="hsl(var(--muted-foreground))"
+                    fontSize={12}
+                    tickLine={false}
+                    axisLine={false}
+                  />
+                  <ChartTooltip
+                    content={<ChartTooltipContent />}
+                    cursor={{ fill: "hsl(var(--muted))", opacity: 0.1 }}
+                  />
+                  <Bar
+                    dataKey="active"
+                    fill="url(#activeGradient)"
+                    radius={[6, 6, 0, 0]}
+                    maxBarSize={60}
+                  />
+                  <Bar
+                    dataKey="trial"
+                    fill="url(#trialGradient)"
+                    radius={[6, 6, 0, 0]}
+                    maxBarSize={60}
+                  />
+                  <Bar
+                    dataKey="expired"
+                    fill="url(#expiredGradient)"
+                    radius={[6, 6, 0, 0]}
+                    maxBarSize={60}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          )}
         </CardContent>
       </Card>
 
@@ -252,7 +301,9 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
-              <span className="text-sm font-medium text-muted-foreground">Active Rate</span>
+              <span className="text-sm font-medium text-muted-foreground">
+                Active Rate
+              </span>
               <div className="flex items-center gap-2">
                 <span className="text-sm font-bold text-foreground">
                   {metrics?.totalCompanies
@@ -268,7 +319,9 @@ export default function DashboardPage() {
               </div>
             </div>
             <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
-              <span className="text-sm font-medium text-muted-foreground">Trial Rate</span>
+              <span className="text-sm font-medium text-muted-foreground">
+                Trial Rate
+              </span>
               <div className="flex items-center gap-2">
                 <span className="text-sm font-bold text-foreground">
                   {metrics?.totalCompanies
@@ -284,7 +337,9 @@ export default function DashboardPage() {
               </div>
             </div>
             <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
-              <span className="text-sm font-medium text-muted-foreground">Churn Rate</span>
+              <span className="text-sm font-medium text-muted-foreground">
+                Churn Rate
+              </span>
               <div className="flex items-center gap-2">
                 <span className="text-sm font-bold text-foreground">
                   {metrics?.totalCompanies
@@ -333,7 +388,9 @@ export default function DashboardPage() {
               </span>
             </div>
             <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
-              <span className="text-sm font-medium text-muted-foreground">Pending</span>
+              <span className="text-sm font-medium text-muted-foreground">
+                Pending
+              </span>
               <span className="text-sm font-bold text-foreground">
                 {metrics?.companiesWithPendingSubscription || 0}
               </span>

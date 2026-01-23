@@ -50,7 +50,7 @@ export default function PaymentsPage() {
       <div>
         <h2 className="text-3xl font-bold tracking-tight">Payments</h2>
         <p className="text-muted-foreground">
-          View payment history and revenue
+          Payment History and Revenue
         </p>
       </div>
 
@@ -115,12 +115,12 @@ export default function PaymentsPage() {
               <CardDescription>Recent payment transactions</CardDescription>
             </div>
             <div className="flex items-center gap-2 text-2xl font-bold">
-              <DollarSign className="h-6 w-6 text-accent" />
-              {loading ? (
-                <Skeleton className="h-8 w-24" />
-              ) : (
-                totalRevenue.toLocaleString()
-              )}
+                <span className="text-accent font-bold text-lg">GMD</span>
+                {loading ? (
+                    <Skeleton className="h-8 w-24" />
+                ) : (
+                    totalRevenue.toLocaleString()
+                )}
             </div>
           </div>
         </CardHeader>
