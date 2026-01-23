@@ -46,18 +46,6 @@ const financialNavigation = [
   },
 ];
 
-const systemNavigation = [
-  {
-    title: "Analytics",
-    href: "/analytics",
-    icon: BarChart3,
-  },
-  {
-    title: "Settings",
-    href: "/settings",
-    icon: Settings,
-  },
-];
 
 // Helper functions shared between components
 const isActive = (pathname: string, path: string) => {
@@ -154,26 +142,6 @@ export function AdminSidebar() {
         </div>
 
         {/* System Section */}
-        <div>
-          <div className="text-sidebar-foreground/70 text-xs font-semibold uppercase tracking-wider mb-2 px-2">
-            System
-          </div>
-          <div className="space-y-1">
-            {systemNavigation.map((item) => {
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={getNavClasses(pathname, item.href)}
-                >
-                  <Icon className="w-5 h-5 shrink-0" />
-                  <span className="ml-3">{item.title}</span>
-                </Link>
-              );
-            })}
-          </div>
-        </div>
       </nav>
       <div className="p-2 border-t border-sidebar-border">
         <div className="mb-3 px-3 py-2 text-sm">
@@ -282,28 +250,6 @@ export function AdminMobileNav() {
             </div>
           </div>
 
-          {/* System Section */}
-          <div>
-            <div className="text-sidebar-foreground/70 text-xs font-semibold uppercase tracking-wider mb-2 px-2">
-              System
-            </div>
-            <div className="space-y-1">
-              {systemNavigation.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={() => setOpen(false)}
-                    className={getNavClasses(pathname, item.href)}
-                  >
-                    <Icon className="w-5 h-5 shrink-0" />
-                    <span className="ml-3">{item.title}</span>
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
         </nav>
         <div className="p-2 border-t border-sidebar-border">
           <div className="mb-3 px-3 py-2 text-sm">
