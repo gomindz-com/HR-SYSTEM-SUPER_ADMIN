@@ -32,7 +32,8 @@ import {
   SortingState,
   useReactTable,
   VisibilityState,
-} from "@tanstack/react-table";
+  CellContext,
+  } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -481,7 +482,7 @@ export function SubscriptionsTable() {
       </div>
 
       {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="w-full">
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "subscriptions" | "lifetime")} className="w-full">
         <div className="flex items-center justify-between mb-6">
           <TabsList className="grid w-full max-w-lg grid-cols-2">
             <TabsTrigger value="subscriptions" className="gap-2">
@@ -588,8 +589,8 @@ export function SubscriptionsTable() {
                         {row.getVisibleCells().map((cell) => (
                           <TableCell key={cell.id}>
                             {flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext()
+                              cell.column.columnDef.cell as ColumnDef<SubscriptionListItem>["cell"],
+                              cell.getContext() as unknown as CellContext<SubscriptionListItem, unknown>
                             )}
                           </TableCell>
                         ))}
@@ -642,7 +643,7 @@ export function SubscriptionsTable() {
 
                   <div className="flex items-center gap-1">
                     {Array.from(
-                      { length: Math.min(5, currentPagination.totalPages) },
+                      { length: Math.min(5, currentPagination?.totalPages || 0) },
                       (_, i) => {
                         let pageNum: number;
                         if (currentPagination.totalPages <= 5) {
@@ -707,11 +708,11 @@ export function SubscriptionsTable() {
                 <div className="flex items-center gap-4">
                   <span className="text-sm text-muted-foreground">
                     Showing{" "}
-                    {currentPagination.total > 0
+                    {currentPagination?.totalCount || 0 > 0
                       ? (page - 1) * pageSize + 1
                       : 0}{" "}
-                    to {Math.min(page * pageSize, currentPagination.total)} of{" "}
-                    {currentPagination.total} items
+                    to {Math.min(page * pageSize, currentPagination?.totalCount || 0)} of{" "}
+                    {currentPagination?.totalCount || 0} items
                   </span>
 
                   <DropdownMenu>
@@ -797,8 +798,8 @@ export function SubscriptionsTable() {
                         {row.getVisibleCells().map((cell) => (
                           <TableCell key={cell.id}>
                             {flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext()
+                              cell.column.columnDef.cell as ColumnDef<LifetimeCompany>["cell"],
+                              cell.getContext() as unknown as CellContext<LifetimeCompany, unknown>
                             )}
                           </TableCell>
                         ))}
@@ -930,15 +931,15 @@ export function SubscriptionsTable() {
                   <div className="flex items-center gap-4">
                     <span className="text-sm text-muted-foreground">
                       Showing{" "}
-                      {lifetimeCompaniesPagination.total > 0
+                      {lifetimeCompaniesPagination?.totalCount || 0 > 0
                         ? (page - 1) * pageSize + 1
                         : 0}{" "}
                       to{" "}
                       {Math.min(
                         page * pageSize,
-                        lifetimeCompaniesPagination.total
+                        lifetimeCompaniesPagination?.totalCount || 0
                       )}{" "}
-                      of {lifetimeCompaniesPagination.total} companies
+                      of {lifetimeCompaniesPagination?.totalCount || 0} companies
                     </span>
 
                     <DropdownMenu>
